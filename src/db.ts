@@ -1,29 +1,57 @@
 import { neon } from "@neondatabase/serverless";
+import type { NeonQueryFunction } from "@neondatabase/serverless";
 
 /**
  * Server-only handle to the team's database (Neon serverless Postgres over HTTP).
- * The connection string comes from `DATABASE_URL`, which the owner connects via
- * the database card and which is injected into the sandbox and passed to the live
- * host on publish. Resolved lazily (per call, not at module load) so the site
- * still builds and serves before a database is connected — the error only
- * surfaces if a query actually runs without `DATABASE_URL`.
+ * Reads `DATABASE_URL` from environment.
  *
- * Use it only inside a `createServerFn()` handler or an `src/routes/api/*` route
- * (never client code):
+ * Usage inside createServerFn() handlers or API routes:
  *
- *   const getPosts = createServerFn().handler(async () => {
- *     const rows = await sql()`select id, title, created_at from posts`;
- *     // Coerce non-primitive columns (timestamps are JS Dates) to strings before
- *     // returning to the client, or React will refuse to render them:
- *     return rows.map((r) => ({ ...r, created_at: String(r.created_at) }));
- *   });
+ *   const db = getDb();
+ *   if (!db) { fallback to mock data }
+ *   const rows = await db`SELECT * FROM leads`;
+ *   const rows = await db('SELECT * FROM leads WHERE id = $1', [id]);
  */
-export const sql = () => {
+
+let _db: ReturnType<typeof neon> | null = null;
+
+export function getDb(): ReturnType<typeof neon> | null {
   const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error(
-      "DATABASE_URL is not set — connect a database (via the database card) before running queries.",
-    );
+  if (!url) return null;
+
+  // Check if it's a real postgres connection string (starts with postgres:// or postgresql://)
+  if (!url.startsWith("postgres://") && !url.startsWith("postgresql://")) {
+    return null;
   }
-  return neon(url);
-};
+
+  if (!_db) {
+    _db = neon(url);
+  }
+  return _db;
+}
+
+export function getDbUrl(): string | null {
+  const url = process.env.DATABASE_URL;
+  if (!url) return null;
+  if (!url.startsWith("postgres://") && !url.startsWith("postgresql://")) {
+    return null;
+  }
+  return url;
+}
+
+/**
+ * Check if the database is actually connected and functional.
+ */
+export async function isDbConnected(): Promise<boolean> {
+  try {
+    const db = getDb();
+    if (!db) return false;
+    await db`SELECT 1`;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export { neon };
+export type { NeonQueryFunction };
