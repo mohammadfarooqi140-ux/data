@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Glassy CRM — V5</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1920px; overflow:hidden; background:#000; }
+  body {
+    font-family:'Jost','Liberation Sans',sans-serif;
+    color:#eceaf2;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ---------- TITLE ZONE (as V2) ---------- */
+  .title-zone { padding-top:104px; text-align:center; }
+  .title-zone .name { font-size:96px; font-weight:600; letter-spacing:1px; color:#ffffff; line-height:1.05; }
+  .title-zone .ver  { font-size:96px; font-weight:700; color:#a78bfa; line-height:1.1; }
+  /* ---------- MIDDLE ZONE ---------- */
+  .stage {
+    position:relative; margin-top:60px; height:694px; width:1080px;
+    background:linear-gradient(160deg,#17131f,#0a0a10 70%); overflow:hidden;
+  }
+  .blob { position:absolute; border-radius:50%; filter:blur(70px); }
+  .blob.b1 { width:560px; height:560px; background:#7c3aed; left:-120px; top:-160px; opacity:.5; }
+  .blob.b2 { width:520px; height:520px; background:#4f46e5; right:-140px; top:60px; opacity:.42; }
+  .blob.b3 { width:420px; height:420px; background:#9333ea; left:330px; bottom:-240px; opacity:.32; }
+  /* dashboard window — 950x586 (aspect 1.62, per reference) */
+  .dash {
+    position:absolute; left:91px; top:54px; width:950px; height:586px;
+    border-radius:34px;
+    background:linear-gradient(155deg, rgba(40,38,54,.80), rgba(20,19,28,.84) 55%, rgba(32,29,46,.78));
+    border:1px solid rgba(255,255,255,.13);
+    box-shadow:0 40px 90px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.14);
+    backdrop-filter:blur(22px) saturate(140%);
+    overflow:hidden;
+  }
+  /* detached floating icon rail — his form: 40px pill, ~56% of window height */
+  .rail {
+    position:absolute; left:39px; top:118px; width:40px; height:330px;
+    border-radius:20px;
+    background:linear-gradient(160deg, rgba(42,40,58,.62), rgba(22,21,32,.55));
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 24px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.12);
+    backdrop-filter:blur(18px) saturate(140%);
+    display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:11px;
+  }
+  .ric {
+    width:30px; height:30px; border-radius:50%; position:relative; flex:0 0 30px;
+    display:flex; align-items:center; justify-content:center;
+    color:rgba(236,234,242,.5);
+  }
+  .ric svg { width:16px; height:16px; }
+  .ric.on { background:#ffffff; color:#1c1a26; box-shadow:0 4px 10px rgba(0,0,0,.4); }
+  .ric .dot { position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; background:#a78bfa; opacity:0; }
+  .rail .rsep { width:16px; height:1px; background:rgba(255,255,255,.16); margin:2px 0; }
+  /* bottom tab dock — floating pill over window bottom edge, static */
+  .dock {
+    position:absolute; left:351px; top:621px; width:430px; height:38px;
+    border-radius:999px;
+    background:rgba(10,9,16,.62); border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 18px 40px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1);
+    backdrop-filter:blur(14px);
+    display:flex; align-items:center; justify-content:center; gap:22px;
+    font-size:13px; font-weight:500; color:rgba(240,238,248,.75); letter-spacing:.3px;
+  }
+  .dock .play {
+    width:24px; height:24px; border-radius:50%; background:#f4f2fa; color:#1c1a26;
+    display:flex; align-items:center; justify-content:center; margin-left:2px;
+  }
+  .dock .play svg { width:11px; height:11px; margin-left:1.5px; }
+  /* ---------- DASH INTERIOR ---------- */
+  .main2 { position:absolute; inset:0; padding:24px 24px 12px; display:flex; flex-direction:column; }
+  /* static header — greeting + subtext only, never moves */
+  .dhead { flex:0 0 auto; margin-bottom:13px; }
+  .dhead .greet { font-size:29px; font-weight:600; letter-spacing:.2px; color:#f4f2fa; line-height:1.15; }
+  .dhead .gsub { font-size:13px; color:rgba(236,234,242,.5); margin-top:3px; display:flex; align-items:center; gap:6px; }
+  .dhead .gsub .livedot { width:7px; height:7px; border-radius:50%; background:#a78bfa; display:inline-block; }
+  .dhead .gsub .teal { color:#c4b5fd; font-weight:600; }
+  /* views swap area */
+  .views { position:relative; flex:1; min-height:0; }
+  .view { position:absolute; inset:0; display:flex; flex-direction:column; gap:14px; opacity:0; }
+  /* cards */
+  .card {
+    background:rgba(255,255,255,.055);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:22px;
+    box-shadow:0 10px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.09);
+  }
+  /* top grid — near-equal thirds: 292 / flex / 284, gaps 14 */
+  .tgrid { display:flex; gap:14px; height:232px; flex:0 0 232px; }
+  .primary { width:292px; flex:0 0 292px; padding:15px 18px 12px; display:flex; flex-direction:column; overflow:hidden; }
+  .primary .plab { font-size:13.5px; color:rgba(236,234,242,.55); font-weight:500; display:flex; align-items:center; justify-content:space-between; }
+  .primary .plab .live2 { font-size:11px; color:#c4b5fd; font-weight:700; letter-spacing:.6px; display:flex; align-items:center; gap:5px; }
+  .primary .plab .live2 i { width:7px; height:7px; border-radius:50%; background:#a78bfa; display:block; }
+  .primary .pval { font-size:34px; font-weight:600; letter-spacing:.2px; margin-top:4px; color:#f7f5fc; line-height:1.1; }
+  .primary .pdelta { font-size:12.5px; color:#c4b5fd; font-weight:500; margin-top:2px; }
+  .primary .pdelta span { color:rgba(236,234,242,.45); font-weight:400; }
+  .pctrls { display:flex; gap:7px; margin-top:11px; }
+  .pbtn { font-size:12px; font-weight:600; padding:6px 11px; border-radius:999px; background:#f4f2fa; color:#1c1a26; white-space:nowrap; }
+  .pchip { font-size:12px; font-weight:500; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); color:rgba(236,234,242,.75); white-space:nowrap; }
+  .psub { margin-top:auto; border-top:1px solid rgba(255,255,255,.09); padding-top:8px; }
+  .psub .pslab { font-size:10px; letter-spacing:1.4px; font-weight:600; color:rgba(236,234,242,.4); margin-bottom:5px; }
+  .psub .pm { display:flex; align-items:center; font-size:12.5px; color:rgba(236,234,242,.6); line-height:1.55; }
+  .psub .pm i { width:7px; height:7px; border-radius:50%; margin-right:8px; display:block; flex:0 0 7px; }
+  .psub .pm b { margin-left:auto; font-weight:600; color:#f4f2fa; font-size:12.5px; }
+  .statgrid { flex:1; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:109px 109px; gap:14px; min-width:0; }
+  .stat2 { padding:12px 14px 10px; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+  .stat2 .lab { font-size:12.5px; color:rgba(236,234,242,.55); font-weight:500; white-space:nowrap; padding-right:26px; }
+  .stat2 .ichip {
+    position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06);
+    display:flex; align-items:center; justify-content:center; color:rgba(236,234,242,.6);
+  }
+  .stat2 .ichip svg { width:12px; height:12px; }
+  .stat2 .val { font-size:27px; font-weight:600; margin-top:2px; color:#f7f5fc; line-height:1.15; }
+  .stat2 .foot { margin-top:auto; }
+  .stat2 .dpill { font-size:11px; font-weight:600; padding:3px 8px; border-radius:999px; background:rgba(167,139,250,.15); color:#c4b5fd; display:inline-block; white-space:nowrap; }
+  .stat2 .dpill span { color:rgba(236,234,242,.45); font-weight:400; }
+  .stat2.acc { background:linear-gradient(150deg,#a78bfa,#7c3aed); border-color:rgba(255,255,255,.25); box-shadow:0 12px 26px rgba(124,58,237,.4), inset 0 1px 0 rgba(255,255,255,.3); }
+  .stat2.acc .lab { color:rgba(255,255,255,.85); }
+  .stat2.acc .val { color:#fff; }
+  .stat2.acc .ichip { background:rgba(255,255,255,.22); border-color:rgba(255,255,255,.3); color:#fff; }
+  .stat2.acc .dpill { background:rgba(255,255,255,.22); color:#f5f3ff; } .stat2.acc .dpill span { color:rgba(255,255,255,.7); }
+  /* chart card */
+  .chartcard { width:284px; flex:0 0 284px; padding:14px 16px 11px; display:flex; flex-direction:column; overflow:hidden; }
+  .chartcard .chead { display:flex; align-items:center; justify-content:space-between; }
+  .chartcard .ct { font-size:14px; font-weight:600; color:#f4f2fa; }
+  .legend { display:flex; gap:10px; font-size:11px; color:rgba(236,234,242,.55); font-weight:500; }
+  .legend i { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:4px; }
+  .bars { flex:1; display:flex; align-items:flex-end; gap:7px; margin-top:10px; border-bottom:1px solid rgba(255,255,255,.12); min-height:0; }
+  .bwrap { flex:1; height:100%; display:flex; align-items:flex-end; }
+  .bstack { width:100%; display:flex; flex-direction:column; transform-origin:bottom; }
+  .bseg.teal { background:linear-gradient(180deg,#c4b5fd,#8b5cf6); border-radius:4px 4px 0 0; }
+  .bseg.blk { background:linear-gradient(180deg,#5c5c68,#3a3a44); }
+  .xlab { display:flex; gap:7px; margin-top:6px; }
+  .xlab span { flex:1; text-align:center; font-size:11px; color:rgba(236,234,242,.4); }
+  /* donut (reports) */
+  .donutwrap { flex:1; display:flex; align-items:center; gap:14px; min-height:0; }
+  .dlegend { display:flex; flex-direction:column; gap:7px; font-size:12px; color:rgba(236,234,242,.65); }
+  .dlegend .dl { display:flex; align-items:center; gap:7px; white-space:nowrap; }
+  .dlegend .dl i { width:8px; height:8px; border-radius:50%; display:block; flex:0 0 8px; }
+  .dlegend .dl b { margin-left:auto; font-weight:600; color:#f4f2fa; padding-left:12px; }
+  /* bottom grid — left stack 292 + wide table (his 65%) */
+  .bgrid { display:flex; gap:14px; flex:1; min-height:0; }
+  .lstack { width:292px; flex:0 0 292px; display:flex; flex-direction:column; gap:10px; min-height:0; }
+  .slimcard { flex:1; padding:10px 14px; display:flex; align-items:center; gap:11px; overflow:hidden; }
+  .slimcard .sic { width:30px; height:30px; flex:0 0 30px; border-radius:10px; background:rgba(167,139,250,.15); color:#c4b5fd; display:flex; align-items:center; justify-content:center; }
+  .slimcard .sic svg { width:16px; height:16px; }
+  .slimcard .st1 { font-size:12.5px; font-weight:600; color:#f4f2fa; line-height:1.25; }
+  .slimcard .st2 { font-size:11px; color:rgba(236,234,242,.5); line-height:1.3; }
+  /* AI Replies panel — our own panel type, sits still like a real app panel */
+  .aicard { height:136px; flex:0 0 136px; padding:11px 13px; display:flex; flex-direction:column; overflow:hidden; }
+  .aicard .st { font-size:13.5px; font-weight:600; color:#f4f2fa; display:flex; align-items:center; justify-content:space-between; }
+  .aicard .st .live2 { font-size:10px; color:#c4b5fd; font-weight:700; letter-spacing:1px; display:flex; align-items:center; gap:5px; }
+  .aicard .st .live2 i { width:6px; height:6px; border-radius:50%; background:#a78bfa; display:block; }
+  .airow { margin-top:7px; }
+  .airow .ail1 { display:flex; align-items:baseline; justify-content:space-between; }
+  .airow .ain { font-size:12px; font-weight:600; color:#f4f2fa; }
+  .airow .ait2 { font-size:10px; font-weight:700; color:#c4b5fd; letter-spacing:.4px; }
+  .airow .aim { font-size:11.5px; color:rgba(236,234,242,.62); line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .airow .aim span { color:rgba(236,234,242,.38); font-weight:400; }
+  .aitype { margin-top:auto; display:flex; align-items:center; gap:7px; font-size:11px; color:rgba(236,234,242,.5); font-style:italic; }
+  .tdots { display:flex; gap:3px; }
+  .tdot { width:5px; height:5px; border-radius:50%; background:#a78bfa; display:block; }
+  /* tall left card (views 2-4) */
+  .tallcard { height:136px; flex:0 0 136px; padding:12px 14px; display:flex; flex-direction:column; overflow:hidden; }
+  .tallcard .st { font-size:11px; letter-spacing:1.2px; font-weight:600; color:rgba(236,234,242,.45); display:flex; justify-content:space-between; align-items:center; }
+  .tallcard .big { font-size:16.5px; font-weight:600; color:#f7f5fc; line-height:1.3; margin-top:7px; }
+  .tallcard .sub { font-size:11.5px; color:rgba(236,234,242,.55); margin-top:3px; line-height:1.35; }
+  .tallcard .srcrow { display:flex; align-items:center; font-size:12px; color:rgba(236,234,242,.6); line-height:1.6; }
+  .tallcard .srcrow i { width:7px; height:7px; border-radius:50%; margin-right:8px; display:block; flex:0 0 7px; }
+  .tallcard .srcrow b { margin-left:auto; font-weight:600; color:#f4f2fa; }
+  .tallcard.teal { background:linear-gradient(150deg,#a78bfa,#7c3aed); border-color:rgba(255,255,255,.25); box-shadow:0 12px 26px rgba(124,58,237,.35), inset 0 1px 0 rgba(255,255,255,.3); }
+  .tallcard.teal .st { color:rgba(255,255,255,.65); } .tallcard.teal .big { color:#fff; } .tallcard.teal .sub { color:rgba(255,255,255,.75); }
+  /* wide table */
+  .tablecard { flex:1; padding:10px 14px 4px; display:flex; flex-direction:column; min-width:0; overflow:hidden; }
+  .tablecard .thead { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+  .tablecard .thead .tt { font-size:14.5px; font-weight:600; color:#f4f2fa; }
+  .tablecard .thead .tctrl { font-size:11.5px; color:rgba(236,234,242,.45); font-weight:500; display:flex; gap:14px; }
+  .tablecard .thead .tctrl b { color:#c4b5fd; font-weight:600; }
+  .tcols, .trow { display:grid; grid-template-columns:1.9fr .92fr .9fr .8fr .6fr; align-items:center; gap:8px; }
+  .tcols { font-size:10px; letter-spacing:1.2px; font-weight:600; color:rgba(236,234,242,.42); padding:5px 2px 4px; border-bottom:1px solid rgba(255,255,255,.1); }
+  .tcols span:last-child, .trow .vl { text-align:right; }
+  .trow { padding:4px 2px; border-bottom:1px solid rgba(255,255,255,.06); }
+  .trow:last-child { border-bottom:none; }
+  .trow .who { display:flex; align-items:center; gap:9px; min-width:0; }
+  .trow .av2 { width:24px; height:24px; flex:0 0 24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:#fff; }
+  .trow .nm { font-size:12.5px; font-weight:600; white-space:nowrap; color:#f4f2fa; line-height:1.15; }
+  .trow .nm span { display:block; font-size:10.5px; color:rgba(236,234,242,.45); font-weight:400; }
+  .trow .jb { font-size:12px; color:rgba(236,234,242,.68); white-space:nowrap; overflow:hidden; }
+  .trow .dt { font-size:12px; color:rgba(236,234,242,.5); white-space:nowrap; }
+  .trow .vl { font-size:13px; font-weight:600; color:#f7f5fc; white-space:nowrap; }
+  .pill { font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; display:inline-block; white-space:nowrap; }
+  .pill.new { background:rgba(167,139,250,.15); color:#c4b5fd; border:1px solid rgba(167,139,250,.45); }
+  .pill.rep { background:rgba(255,255,255,.07); color:rgba(236,234,242,.7); border:1px solid rgba(255,255,255,.16); }
+  .pill.bok { background:#f4f2fa; color:#1c1a26; border:1px solid #f4f2fa; }
+  .pill.pen { background:rgba(245,158,11,.14); color:#fbbf24; border:1px solid rgba(245,158,11,.4); }
+  .flipwrap { position:relative; display:inline-block; }
+  .flipwrap .flipB { position:absolute; left:0; top:0; }
+  /* ---------- V5 purpose-built views ---------- */
+  .crow { display:flex; gap:14px; flex:1; min-height:0; }
+  .av3 { width:30px; height:30px; flex:0 0 30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:#fff; }
+  /* enquiries — conversation screen */
+  .listcard { width:296px; flex:0 0 296px; padding:12px 10px; display:flex; flex-direction:column; overflow:hidden; }
+  .lhead { display:flex; align-items:center; justify-content:space-between; padding:0 6px 9px; }
+  .lhead .lt2 { font-size:15px; font-weight:600; color:#f4f2fa; }
+  .lchip { font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; background:rgba(167,139,250,.14); color:#c4b5fd; white-space:nowrap; }
+  .llist { display:flex; flex-direction:column; gap:5px; flex:1; min-height:0; }
+  .litem { flex:1; display:flex; align-items:center; gap:10px; padding:7px 8px; border-radius:14px; border:1px solid transparent; min-height:0; }
+  .litem.on { background:rgba(167,139,250,.1); border-color:rgba(167,139,250,.4); }
+  .lmid { flex:1; min-width:0; }
+  .lnm { font-size:13px; font-weight:600; color:#f4f2fa; line-height:1.2; white-space:nowrap; }
+  .lsub { font-size:11px; color:rgba(236,234,242,.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+  .lright { text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+  .ltime { font-size:10.5px; color:rgba(236,234,242,.42); white-space:nowrap; }
+  .mpill { font-size:9.5px; font-weight:700; letter-spacing:.3px; padding:2px 7px; border-radius:999px; white-space:nowrap; }
+  .mpill.new { background:rgba(167,139,250,.16); color:#c4b5fd; }
+  .mpill.rep { background:rgba(255,255,255,.07); color:rgba(236,234,242,.65); border:1px solid rgba(255,255,255,.15); }
+  .mpill.bok { background:#f4f2fa; color:#1c1a26; }
+  .convcard { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+  .chead2 { display:flex; align-items:center; gap:11px; padding:12px 16px 10px; border-bottom:1px solid rgba(255,255,255,.08); }
+  .cnm { font-size:14.5px; font-weight:600; color:#f4f2fa; line-height:1.2; }
+  .csub { font-size:11.5px; color:rgba(236,234,242,.5); margin-top:1px; }
+  .cbody { flex:1; padding:13px 16px 8px; display:flex; flex-direction:column; gap:8px; min-height:0; }
+  .brow { display:flex; }
+  .brow.cust { justify-content:flex-start; }
+  .brow.ai { justify-content:flex-end; }
+  .bub { max-width:79%; padding:8px 12px 6px; font-size:12.5px; line-height:1.38; }
+  .bub.cust { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:16px 16px 16px 5px; color:#f0eef6; box-shadow:0 4px 10px rgba(0,0,0,.25); }
+  .bub.ai { background:linear-gradient(150deg,#a78bfa,#7c3aed); border-radius:16px 16px 5px 16px; color:#f5f3ff; box-shadow:0 6px 14px rgba(124,58,237,.35); }
+  .btime { display:block; text-align:right; font-size:9.5px; margin-top:3px; opacity:.55; }
+  .typebub { padding:10px 14px 8px; display:flex; align-items:center; }
+  .creply { display:flex; align-items:center; gap:10px; padding:10px 14px 12px; border-top:1px solid rgba(255,255,255,.08); }
+  .cinput { flex:1; font-size:12.5px; color:rgba(236,234,242,.42); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:9px 15px; }
+  .csend { width:34px; height:34px; flex:0 0 34px; border-radius:50%; background:linear-gradient(150deg,#a78bfa,#7c3aed); color:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 14px rgba(124,58,237,.4); }
+  .csend svg { width:15px; height:15px; }
+  /* bookings — calendar screen */
+  .calcard { flex:1; padding:13px 16px 12px; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+  .calhead { display:flex; align-items:center; gap:12px; margin-bottom:9px; }
+  .calhead .ct2 { font-size:15.5px; font-weight:600; color:#f4f2fa; white-space:nowrap; }
+  .calhead .calweek { font-size:11.5px; color:rgba(236,234,242,.5); font-weight:500; white-space:nowrap; }
+  .calhead .legend { margin-left:auto; }
+  .calgrid { flex:1; display:flex; min-height:0; border-top:1px solid rgba(255,255,255,.09); }
+  .calcol { flex:1; display:flex; flex-direction:column; border-left:1px solid rgba(255,255,255,.07); min-width:0; }
+  .calcol:first-child { border-left:none; }
+  .calcol.today { background:rgba(167,139,250,.07); }
+  .caldh { text-align:center; font-size:9.5px; letter-spacing:1.2px; font-weight:600; color:rgba(236,234,242,.45); padding-top:8px; }
+  .caldn { text-align:center; margin:3px auto 7px; font-size:14.5px; font-weight:600; color:#f4f2fa; width:25px; height:25px; line-height:25px; border-radius:50%; }
+  .caldn.today { background:#7c3aed; color:#fff; }
+  .calbody { position:relative; flex:1; margin:0 3px; }
+  .blk { position:absolute; left:0; right:0; border-radius:7px; padding:4px 6px; font-size:9.5px; line-height:1.25; color:#fff; overflow:hidden; white-space:nowrap; }
+  .blk b { display:block; font-size:9.5px; font-weight:700; }
+  .blk.teal { background:linear-gradient(150deg,#a78bfa,#7c3aed); }
+  .blk.dark { background:linear-gradient(150deg,#63636e,#43434e); }
+  .blk.amber { background:linear-gradient(150deg,#f59e0b,#d97706); }
+  .calempty { position:absolute; top:40%; left:0; right:0; text-align:center; font-size:10px; color:rgba(236,234,242,.3); }
+  .todaycard { width:284px; flex:0 0 284px; padding:13px 15px 11px; display:flex; flex-direction:column; overflow:hidden; }
+  .todaycard .tt2 { font-size:15px; font-weight:600; color:#f4f2fa; }
+  .todaycard .tsub { font-size:11.5px; color:rgba(236,234,242,.5); margin-top:2px; }
+  .tlist { flex:1; display:flex; flex-direction:column; justify-content:space-evenly; min-height:0; }
+  .trow2 { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+  .trow2:last-child { border-bottom:none; }
+  .ttime { font-size:13px; font-weight:700; color:#c4b5fd; width:40px; flex:0 0 40px; }
+  .tmid { flex:1; min-width:0; }
+  .tnm { font-size:12.5px; font-weight:600; color:#f4f2fa; line-height:1.2; white-space:nowrap; }
+  .tjob { font-size:11px; color:rgba(236,234,242,.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tfoot { font-size:11px; color:rgba(236,234,242,.5); border-top:1px solid rgba(255,255,255,.08); padding-top:8px; display:flex; align-items:center; gap:6px; }
+  .tfoot i { width:6px; height:6px; border-radius:50%; background:#a78bfa; display:block; flex:0 0 6px; }
+  /* reports — chart led */
+  .rgrid { display:flex; gap:14px; flex:1; min-height:0; }
+  .linecard { flex:1; padding:14px 18px 10px; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+  .linecard .chead { display:flex; align-items:flex-start; justify-content:space-between; }
+  .linecard .ct { font-size:14px; font-weight:600; color:#f4f2fa; }
+  .linecard .lsub2 { font-size:11.5px; color:rgba(236,234,242,.5); margin-top:1px; }
+  .linecard .lval { font-size:25px; font-weight:600; color:#f7f5fc; }
+  .linesvg { flex:1; width:100%; min-height:0; margin-top:6px; }
+  .xlab2 { display:flex; justify-content:space-between; margin-top:5px; padding:0 2px; }
+  .xlab2 span { font-size:11px; color:rgba(236,234,242,.4); }
+  .kpirow { display:flex; gap:14px; height:118px; flex:0 0 118px; }
+  .kpirow .stat2 { flex:1; }
+
+  /* ---------- CODE ZONE (unchanged from V2) ---------- */
+  .codewin {
+    margin:56px 48px 0; height:596px; border-radius:24px; overflow:hidden;
+    background:#0b0e15; border:1px solid rgba(255,255,255,.11);
+    box-shadow:0 34px 80px rgba(0,0,0,.6);
+  }
+  .codebar {
+    height:64px; background:#11141d; display:flex; align-items:center; gap:9px;
+    padding:0 22px; border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .cdot { width:15px; height:15px; border-radius:50%; }
+  .tab {
+    margin-left:20px; background:#0b0e15; border:1px solid rgba(255,255,255,.08); border-bottom:none;
+    padding:9px 18px; border-radius:10px 10px 0 0; font-family:'Liberation Mono',monospace;
+    font-size:16.5px; color:#d7deeb; align-self:flex-end; height:44px; display:flex; align-items:center;
+  }
+  .tab i { color:#ff8a3d; font-style:normal; }
+  pre {
+    padding:30px 34px; font-family:'Liberation Mono','DejaVu Sans Mono',monospace;
+    font-size:23.5px; line-height:1.85; color:#a9b7d0; white-space:pre;
+  }
+  .k { color:#c792ea; } .s { color:#9ece6a; } .t { color:#7aa2f7; }
+  .f { color:#82aaff; } .p { color:#89ddff; } .n { color:#f78c6c; } .cm { color:#565f89; }
+</style>
+</head>
+<body>
+  <div class="title-zone">
+    <div class="name">Glassy CRM</div>
+    <div class="ver">V5</div>
+  </div>
+
+  <div class="stage">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="rail" id="rail"></div>
+    <div class="dash">
+      <div class="main2">
+        <div class="dhead">
+          <div class="greet">Good morning, Merrick Homes</div>
+          <div class="gsub">Wednesday · 5 visits today · <span class="livedot" id="livedot"></span><span class="teal">AI receptionist live</span></div>
+        </div>
+        <div class="views" id="views"></div>
+      </div>
+    </div>
+    <div class="dock">
+      <span>Overview</span><span>Enquiries</span><span>Bookings</span><span>Reports</span>
+      <span class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></span>
+    </div>
+  </div>
+
+  <div class="codewin">
+    <div class="codebar">
+      <div class="cdot" style="background:#ff5f57"></div>
+      <div class="cdot" style="background:#febc2e"></div>
+      <div class="cdot" style="background:#28c840"></div>
+      <div class="tab">Dashboard<i>.jsx</i></div>
+    </div>
+    <pre><code><span class="k">import</span> { motion } <span class="k">from</span> <span class="s">'framer-motion'</span>;
+<span class="k">import</span> { Users, CalendarCheck, Clock } <span class="k">from</span> <span class="s">'lucide-react'</span>;
+
+<span class="k">const</span> <span class="f">StatCard</span> = ({ title, value, change, icon: Icon }) =&gt; (
+  &lt;<span class="t">motion.div</span> <span class="p">whileHover</span>={{ y: <span class="n">-4</span> }} <span class="p">className</span>=<span class="s">"glass-card"</span>&gt;
+    &lt;<span class="t">span</span> <span class="p">className</span>=<span class="s">"label"</span>&gt;{title}&lt;/<span class="t">span</span>&gt;
+    &lt;<span class="t">div</span> <span class="p">className</span>=<span class="s">"value"</span>&gt;{value}&lt;/<span class="t">div</span>&gt;
+    &lt;<span class="t">span</span> <span class="p">className</span>=<span class="s">"delta"</span>&gt;+{change}% this week&lt;/<span class="t">span</span>&gt;</code></pre>
+  </div>
+<script>
+/* ---------- icons ---------- */
+const P = {
+  grid:'<rect x="3" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.8"/>',
+  chat:'<path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.4c-1.5 0-3-.4-4.2-1.1L3 20l1.3-5.2A8.4 8.4 0 1 1 21 11.5z"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M16 5.2a3.5 3.5 0 0 1 0 5.9M18.5 15.4c1 .8 1.7 2 2 4.6"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/>',
+  pound:'<path d="M17.5 6.5C16.6 5 14.9 4 13 4c-2.8 0-5 2.2-5 5v2H5.5M8 15H5.5M8 11h6.5M8 11v5.5L6.8 20h11"/>',
+  star:'<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/>',
+  phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>'
+};
+const svg = (paths, fill) => `<svg viewBox="0 0 24 24" fill="${fill ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+/* ---------- rail (static chrome; only its active state changes) ---------- */
+const RAIL = ['grid','chat','cal','chart'];
+document.getElementById('rail').innerHTML =
+  RAIL.map((k,i)=>`<div class="ric" data-ic="${i}">${svg(P[k])}<span class="dot"></span></div>`).join('') +
+  `<div class="rsep"></div><div class="ric">${svg(P.plus)}</div><div class="ric">${svg(P.check)}</div>`;
+/* ---------- builders ---------- */
+const stat = (lab, icon, val, pill, acc) => `<div class="stat2 card${acc ? ' acc' : ''}"><div class="lab">${lab}</div><div class="ichip">${svg(P[icon])}</div><div class="val">${val}</div><div class="foot"><span class="dpill">${pill}</span></div></div>`;
+const sbars = (vals, labs) => `<div class="bars">${vals.map((v,i)=>`<div class="bwrap"><div class="bstack" data-bar="${i}" style="height:${(v*100).toFixed(1)}%"><div class="bseg teal" style="flex:45"></div><div class="bseg blk" style="flex:55"></div></div></div>`).join('')}</div><div class="xlab">${labs.map(l=>`<span>${l}</span>`).join('')}</div>`;
+const chartBars = (title, vals, labs) => `<div class="chartcard card"><div class="chead"><div class="ct">${title}</div><div class="legend"><span><i style="background:#a78bfa"></i>Web</span><span><i style="background:#5c5c68"></i>Ref</span></div></div>${sbars(vals, labs)}</div>`;
+const AV = ['linear-gradient(145deg,#8b5cf6,#6d28d9)','linear-gradient(145deg,#6366f1,#4338ca)','linear-gradient(145deg,#71717a,#3f3f46)','linear-gradient(145deg,#c084fc,#9333ea)','linear-gradient(145deg,#a1a1aa,#52525b)'];
+const who = (i, ini, nm, area) => `<div class="who"><div class="av2" style="background:${AV[i % 5]}">${ini}</div><div class="nm">${nm}<span>${area}</span></div></div>`;
+const table = (title, cols, rows) => `<div class="tablecard card"><div class="thead"><div class="tt">${title}</div><div class="tctrl"><span>⌕ Search</span><b>Filter ▾</b></div></div><div class="tcols">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${rows.join('')}</div>`;
+const row = (cells) => `<div class="trow">${cells}</div>`;
+const aifeed = () => `<div class="aicard card"><div class="st">AI Replies <span class="live2"><i class="livedot2"></i>LIVE</span></div>
+  <div class="airow"><div class="ail1"><span class="ain">Charlotte Reid</span><span class="ait2">✓ VISIT BOOKED</span></div><div class="aim">“Wednesday 10:30 works, you are booked in.” <span>· 2m ago</span></div></div>
+  <div class="airow"><div class="ail1"><span class="ain">Oliver Bennett</span><span class="ait2">✓ REPLIED IN 24s</span></div><div class="aim">“Thanks! Friday afternoon suits us.” <span>· 8m ago</span></div></div>
+  <div class="aitype"><span class="tdots"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></span>AI is replying to a new enquiry…</div></div>`;
+const slimCal = `<div class="slimcard card"><div class="sic">${svg(P.cal)}</div><div><div class="st1">Next visit — Reid, kitchen extension</div><div class="st2">Today · 10:30 AM · Twickenham</div></div></div>`;
+const slimCheck = `<div class="slimcard card"><div class="sic">${svg(P.check)}</div><div><div class="st1">0 unanswered</div><div class="st2">No enquiry left waiting overnight</div></div></div>`;
+const slimClock = `<div class="slimcard card"><div class="sic">${svg(P.clock)}</div><div><div class="st1">5 visits today · 2 quote meetings</div><div class="st2">Next at 10:30 AM · Twickenham</div></div></div>`;
+const slimGauge = `<div class="slimcard card"><svg width="42" height="42" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="14"/><circle class="garc" data-pct="0.68" cx="60" cy="60" r="50" fill="none" stroke="#a78bfa" stroke-width="14" stroke-linecap="round" transform="rotate(-90 60 60)"/></svg><div><div class="st1">Quote conversion · 68%</div><div class="st2">of quotes turn into booked jobs</div></div></div>`;
+
+const li = (i, ini, nm, sub, time, pill, on) => `<div class="litem${on ? ' on' : ''}"><div class="av3" style="background:${AV[i % 5]}">${ini}</div><div class="lmid"><div class="lnm">${nm}</div><div class="lsub">${sub}</div></div><div class="lright"><div class="ltime">${time}</div>${pill}</div></div>`;
+const mp = (cls, txt) => `<span class="mpill ${cls}">${txt}</span>`;
+const bub = (side, html, time, fade) => `<div class="brow ${side}"><div class="bub ${side}" data-fade="${fade}">${html}<span class="btime">${time}</span></div></div>`;
+const blk = (top, cls, time, label, fade) => `<div class="blk ${cls}" style="top:${top}%" data-fade="${fade}"><b>${time}</b>${label}</div>`;
+const trow2 = (time, nm, job, pill) => `<div class="trow2"><div class="ttime">${time}</div><div class="tmid"><div class="tnm">${nm}</div><div class="tjob">${job}</div></div>${pill}</div>`;
+const VIEWS = [
+/* ---------- 1 · OVERVIEW ---------- */
+`<div class="tgrid">
+   <div class="primary card">
+     <div class="plab">Pipeline value <span class="live2"><i class="livedot2"></i>AI RECEPTIONIST LIVE</span></div>
+     <div class="pval">£<span data-count="612480" data-fmt="1">0</span></div>
+     <div class="pdelta">▲ 22% <span>vs last month</span></div>
+     <div class="pctrls"><span class="pbtn">This month ▾</span><span class="pchip">Quotes</span><span class="pchip">Visits</span></div>
+     <div class="psub"><div class="pslab">PIPELINE · 3 STAGES</div>
+       <div class="pm"><i style="background:#a78bfa"></i>Quotes sent<b>£236,900</b></div>
+       <div class="pm"><i style="background:#e7e5ee"></i>Deposits received<b>£88,500</b></div>
+       <div class="pm"><i style="background:#f59e0b"></i>Starts booked in<b>14</b></div>
+     </div>
+   </div>
+   <div class="statgrid">
+     ${stat('New enquiries','users','<span data-count="156">0</span>','▲ 21% <span>this week</span>',1)}
+     ${stat('Visits booked','cal','<span data-count="58">0</span>','▲ 15% <span>this week</span>',0)}
+     ${stat('Quotes sent','pound','<span data-count="84">0</span>','£237k <span>total value</span>',0)}
+     ${stat('Reply time','clock','<span data-count="29">0</span>s','24/7 <span>· instant</span>',0)}
+   </div>
+   ${chartBars('Enquiries', [.44,.68,.6,.95,.7,.84,.58,1,.74], ['M','T','W','T','F','S','S','M','T'])}
+ </div>
+ <div class="bgrid">
+   <div class="lstack">${aifeed()}${slimCal}</div>
+   ${table('Recent enquiries', ['CLIENT','JOB','STATUS','DATE','VALUE'], [
+     row(who(0,'OB','Oliver Bennett','Richmond') + '<div class="jb">Extension</div><div><span class="pill new">New</span></div><div class="dt">Today · 09:41</div><div class="vl">£57,000</div>'),
+     row(who(1,'CR','Charlotte Reid','Twickenham') + '<div class="jb">Kitchen ext.</div><div><span class="pill bok">Visit booked</span></div><div class="dt">Today · 09:26</div><div class="vl">£43,750</div>'),
+     row(who(2,'GM','George Miller','Esher') + '<div class="jb">Renovation</div><div><span class="pill rep">Replied</span></div><div class="dt">Today · 08:52</div><div class="vl">£118,400</div>'),
+     row(who(3,'LT','Lily Thompson','Surbiton') + '<div class="jb">Loft</div><div><span class="pill rep">Replied</span></div><div class="dt">Yesterday</div><div class="vl">£39,600</div>'),
+     row(who(4,'HW','Harry Wilson','Kingston') + '<div class="jb">Garden room</div><div><span class="pill new">New</span></div><div class="dt">Yesterday</div><div class="vl">£27,800</div>')
+   ])}
+ </div>`,
+/* ---------- 2 · ENQUIRIES ---------- */
+`<div class="crow">
+   <div class="listcard card">
+     <div class="lhead"><span class="lt2">Enquiries</span><span class="lchip">31 new today</span></div>
+     <div class="llist">
+       ${li(1,'CR','Charlotte Reid','Kitchen ext. · Twickenham','2m', mp('bok','BOOKED'), 1)}
+       ${li(0,'OB','Oliver Bennett','Extension · Richmond','8m', mp('rep','REPLIED'), 0)}
+       ${li(3,'LT','Lily Thompson','Loft · Surbiton','19m', mp('rep','REPLIED'), 0)}
+       ${li(4,'HW','Harry Wilson','Garden room · Kingston','44m', mp('new','NEW'), 0)}
+       ${li(2,'AO','Amara Osei','Renovation · Wimbledon','1h', mp('rep','REPLIED'), 0)}
+       ${li(0,'JM','Jack Murphy','Extension · Epsom','2h', mp('new','NEW'), 0)}
+     </div>
+   </div>
+   <div class="convcard card">
+     <div class="chead2">
+       <div class="av3" style="background:${AV[1]}">CR</div>
+       <div><div class="cnm">Charlotte Reid</div><div class="csub">Kitchen extension · Twickenham · via website</div></div>
+       <span class="pill bok" style="margin-left:auto">Visit booked</span>
+     </div>
+     <div class="cbody">
+       ${bub('cust','Hi, we want to extend our kitchen out the back, roughly five metres. Any idea on cost, and how soon you could start?','09:14', 0.05)}
+       ${bub('ai','Hi Charlotte, thanks for getting in touch. A rear kitchen extension of that size usually comes in between £46k and £58k, depending on the finish. I can book a free site visit so we can measure up and quote exactly. Would Wednesday 10:30 suit you?','AI · replied in 24s', 0.22)}
+       ${bub('cust','Wednesday 10:30 is perfect, thank you.','09:19', 0.4)}
+       ${bub('ai','You are booked in for Wednesday 10:30 ✓ Confirmation sent, and a reminder follows the day before.','09:19', 0.56)}
+       <div class="brow ai"><div class="bub ai typebub"><span class="tdots"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></span></div></div>
+     </div>
+     <div class="creply">
+       <div class="cinput">Write a reply…</div>
+       <div class="csend">${svg('<path d="M12 19V5M5 12l7-7 7 7"/>')}</div>
+     </div>
+   </div>
+ </div>`,
+
+/* ---------- 3 · BOOKINGS ---------- */
+`<div class="crow">
+   <div class="calcard card">
+     <div class="calhead"><span class="ct2">December 2026</span><span class="calweek">Mon 7 – Sun 13</span>
+       <div class="legend"><span><i style="background:#a78bfa"></i>Visit</span><span><i style="background:#63636e"></i>Quote</span><span><i style="background:#f59e0b"></i>2nd visit</span></div></div>
+     <div class="calgrid">
+       <div class="calcol"><div class="caldh">MON</div><div class="caldn">7</div><div class="calbody">
+         ${blk(10,'dark','9:00','Osei · Quote',0.05)}
+         ${blk(58,'teal','14:30','Thompson',0.13)}
+       </div></div>
+       <div class="calcol"><div class="caldh">TUE</div><div class="caldn">8</div><div class="calbody">
+         ${blk(16,'teal','10:00','Wilson · Gdn',0.09)}
+         ${blk(60,'dark','15:00','Murphy · Ext',0.17)}
+       </div></div>
+       <div class="calcol today"><div class="caldh">WED</div><div class="caldn today">9</div><div class="calbody">
+         ${blk(0,'teal','9:00','Bennett · Ext',0.07)}
+         ${blk(20,'dark','10:30','Reid · Kitchen',0.15)}
+         ${blk(42,'teal','13:15','Miller · Reno',0.23)}
+         ${blk(64,'amber','15:45','Thompson 2nd',0.31)}
+         ${blk(84,'teal','17:00','Osei · Site',0.39)}
+       </div></div>
+       <div class="calcol"><div class="caldh">THU</div><div class="caldn">10</div><div class="calbody">
+         ${blk(30,'amber','11:00','Reid · 2nd',0.11)}
+       </div></div>
+       <div class="calcol"><div class="caldh">FRI</div><div class="caldn">11</div><div class="calbody">
+         ${blk(12,'dark','9:30','Bennett Quote',0.19)}
+         ${blk(56,'teal','14:00','Murphy · Site',0.27)}
+       </div></div>
+       <div class="calcol"><div class="caldh">SAT</div><div class="caldn">12</div><div class="calbody">
+         ${blk(8,'teal','10:00','Wilson · Site',0.21)}
+       </div></div>
+       <div class="calcol"><div class="caldh">SUN</div><div class="caldn">13</div><div class="calbody">
+         <div class="calempty">No visits</div>
+       </div></div>
+     </div>
+   </div>
+   <div class="todaycard card">
+     <div class="tt2">Today — Wednesday</div>
+     <div class="tsub">5 appointments · booked by AI</div>
+     <div class="tlist">
+       ${trow2('9:00','Oliver Bennett','Extension · Richmond','<span class="pill bok">Confirmed</span>')}
+       ${trow2('10:30','Charlotte Reid','Kitchen ext. · Twickenham','<span class="pill bok">Confirmed</span>')}
+       ${trow2('13:15','George Miller','Renovation · Esher','<span class="pill pen">Pending</span>')}
+       ${trow2('15:45','Lily Thompson','Loft · Surbiton','<span class="pill bok">Confirmed</span>')}
+       ${trow2('17:00','Amara Osei','Renovation · Wimbledon','<span class="pill bok">Confirmed</span>')}
+     </div>
+     <div class="tfoot"><i></i>Reminders sent automatically</div>
+   </div>
+ </div>`,
+
+/* ---------- 4 · REPORTS ---------- */
+`<div class="rgrid">
+   <div class="linecard card">
+     <div class="chead"><div><div class="ct">Jobs won</div><div class="lsub2">Last 6 months · value of work signed</div></div><div class="lval">£<span data-count="128750" data-fmt="1">0</span></div></div>
+     <svg class="linesvg" viewBox="0 0 560 190" preserveAspectRatio="none">
+       <g stroke="rgba(255,255,255,.08)" stroke-width="1">
+         <line x1="0" y1="38" x2="560" y2="38"/><line x1="0" y1="86" x2="560" y2="86"/><line x1="0" y1="134" x2="560" y2="134"/><line x1="0" y1="182" x2="560" y2="182"/>
+       </g>
+       <path class="areafill" d="M10,160 L118,138 L226,146 L334,112 L442,80 L540,40 L540,184 L10,184 Z" fill="rgba(167,139,250,.16)"/>
+       <path class="linepath" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" d="M10,160 L118,138 L226,146 L334,112 L442,80 L540,40" fill="none" stroke="#a78bfa" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+       <circle cx="540" cy="40" r="5.5" fill="#a78bfa" stroke="#17141f" stroke-width="2"/>
+     </svg>
+     <div class="xlab2"><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span></div>
+   </div>
+   <div class="chartcard card" style="width:300px;flex:0 0 300px"><div class="chead"><div class="ct">Jobs by source</div></div>
+     <div class="donutwrap">
+       <svg width="118" height="118" viewBox="0 0 120 120">
+         <circle cx="60" cy="60" r="46" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="17"/>
+         <circle class="seg" data-len="167.6" cx="60" cy="60" r="46" fill="none" stroke="#a78bfa" stroke-width="17" stroke-dasharray="167.6 121.4" transform="rotate(-90 60 60)"/>
+         <circle class="seg" data-len="78.0" cx="60" cy="60" r="46" fill="none" stroke="#e7e5ee" stroke-width="17" stroke-dasharray="78.0 211.0" transform="rotate(118.8 60 60)"/>
+         <circle class="seg" data-len="43.3" cx="60" cy="60" r="46" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="17" stroke-dasharray="43.3 245.7" transform="rotate(216 60 60)"/>
+       </svg>
+       <div class="dlegend">
+         <div class="dl"><i style="background:#a78bfa"></i>Website<b>58%</b></div>
+         <div class="dl"><i style="background:#e7e5ee"></i>Referrals<b>27%</b></div>
+         <div class="dl"><i style="background:rgba(255,255,255,.28)"></i>Google<b>15%</b></div>
+       </div>
+     </div>
+   </div>
+ </div>
+ <div class="kpirow">
+   ${stat('Win rate','star','<span data-count="38">0</span>%','▲ 4 pts <span>this quarter</span>',1)}
+   ${stat('Quotes sent','pound','<span data-count="84">0</span>','£237k <span>total value</span>',0)}
+   ${stat('Avg job value','users','£<span data-count="31">0</span>k','▲ £2.6k <span>this quarter</span>',0)}
+   ${stat('Reviews','chat','4.9','268 <span>· auto-requested</span>',0)}
+ </div>`
+
+];
+document.getElementById('views').innerHTML = VIEWS.map((v,i)=>`<div class="view" id="v${i}">${v}</div>`).join('');
+
+/* ---------- motion ----------
+   Chrome (rail, header, window, dock, code pane) is never transformed.
+   A tab switch = sidebar active state flips at the slot boundary, then the
+   content area crossfades IN PLACE over 200ms. No translations anywhere.
+   Inside a view, only in-place micro-animation: counters, bars growing from
+   their baseline, donut drawing, one pill flip, AI typing dots. */
+function renderAt(t) {
+  const DUR = 1.5, XF = 0.2;
+  const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+  const easeOut = x=>1-Math.pow(1-x,3);
+  const smooth = x=>{ x = clamp(x,0,1); return x*x*(3-2*x); };
+  const slotF = t / DUR;
+  const slot = Math.floor(slotF) % 4;
+  const lt = t - Math.floor(slotF) * DUR;
+  const prev = (slot + 3) % 4;
+
+  document.querySelectorAll('.view').forEach((el,i)=>{
+    let op = 0, age = 0;
+    if (i === slot)      { op = lt < XF ? smooth(lt / XF) : 1; age = lt; }
+    else if (i === prev) { op = lt < XF ? 1 - smooth(lt / XF) : 0; age = DUR + lt; }
+    el.style.opacity = op.toFixed(3);
+    el.style.zIndex = i === slot ? 2 : 1;
+    el.style.visibility = op <= 0 ? 'hidden' : 'visible';
+    if (op <= 0) return;
+    const p = easeOut(clamp(age / 0.9, 0, 1));
+    el.querySelectorAll('[data-count]').forEach(c=>{
+      const v = Math.round(parseFloat(c.dataset.count) * p);
+      c.textContent = c.dataset.fmt ? v.toLocaleString('en-GB') : v;
+    });
+    el.querySelectorAll('[data-bar]').forEach(b=>{
+      const bp = easeOut(clamp((age - 0.05 - parseInt(b.dataset.bar) * 0.03) / 0.65, 0, 1));
+      b.style.transform = `scaleY(${Math.max(0.02, bp).toFixed(3)})`;
+    });
+    el.querySelectorAll('.garc').forEach(g=>{
+      const C = 2 * Math.PI * 50;
+      g.style.strokeDasharray = C;
+      g.style.strokeDashoffset = (C * (1 - parseFloat(g.dataset.pct) * p)).toFixed(1);
+    });
+    el.querySelectorAll('.seg').forEach((s,idx)=>{
+      const len = parseFloat(s.dataset.len);
+      const sp = easeOut(clamp((age - 0.1 - idx * 0.12) / 0.7, 0, 1));
+      s.style.strokeDashoffset = (len * (1 - sp)).toFixed(1);
+    });
+    el.querySelectorAll('[data-fade]').forEach(f=>{
+      const fp = easeOut(clamp((age - parseFloat(f.dataset.fade)) / 0.45, 0, 1));
+      f.style.opacity = fp.toFixed(3);
+    });
+    el.querySelectorAll('.linepath').forEach(s=>{
+      const lp = easeOut(clamp((age - 0.1) / 0.9, 0, 1));
+      s.style.strokeDashoffset = (100 * (1 - lp)).toFixed(1);
+    });
+    el.querySelectorAll('.areafill').forEach(s=>{
+      const lp = easeOut(clamp((age - 0.1) / 0.9, 0, 1));
+      s.style.opacity = (0.95 * lp).toFixed(3);
+    });
+    const fw = el.querySelector('.flipwrap');
+    if (fw) {
+      const fp = clamp((age - 1.05) / 0.15, 0, 1);
+      fw.querySelector('.flipA').style.opacity = (1 - fp).toFixed(3);
+      fw.querySelector('.flipB').style.opacity = fp.toFixed(3);
+    }
+  });
+
+  /* sidebar active state — flips at the boundary, dot fades in over 150ms */
+  document.querySelectorAll('.ric[data-ic]').forEach(ic=>{
+    const on = parseInt(ic.dataset.ic) === slot;
+    ic.classList.toggle('on', on);
+    ic.querySelector('.dot').style.opacity = on ? clamp(lt / 0.15, 0, 1).toFixed(3) : 0;
+  });
+  /* live dots + AI typing dots — continuous, subtle, like a real app */
+  const pulse = 0.55 + 0.45 * Math.sin(t * 2.4);
+  const ld = document.getElementById('livedot');
+  if (ld) ld.style.opacity = pulse.toFixed(3);
+  document.querySelectorAll('.livedot2').forEach(d=>{ d.style.opacity = pulse.toFixed(3); });
+  document.querySelectorAll('.tdot').forEach((d,k)=>{
+    d.style.opacity = (0.3 + 0.4 * (0.5 + 0.5 * Math.sin(t * 4.2 - k * 1.05))).toFixed(3);
+  });
+}
+window.renderAt = renderAt;
+renderAt(parseFloat(new URLSearchParams(location.search).get('t') || '0'));
+</script>
+</body>
+</html>
