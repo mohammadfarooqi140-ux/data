@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Glassy CRM — V6</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1920px; overflow:hidden; background:#000; }
+  body {
+    font-family:'Jost','Liberation Sans',sans-serif;
+    color:#262038;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ---------- TITLE ZONE ---------- */
+  .title-zone { padding-top:104px; text-align:center; }
+  .title-zone .name { font-size:96px; font-weight:600; letter-spacing:1px; color:#ffffff; line-height:1.05; }
+  .title-zone .ver  { font-size:96px; font-weight:700; color:#ff6b5e; line-height:1.1; }
+  /* ---------- MIDDLE ZONE — bright multi-colour stage ---------- */
+  .stage {
+    position:relative; margin-top:60px; height:694px; width:1080px;
+    background:linear-gradient(160deg,#fdf6ec,#edf1ff 52%,#f7efff); overflow:hidden;
+  }
+  .blob { position:absolute; border-radius:50%; filter:blur(64px); }
+  .blob.b1 { width:520px; height:520px; background:#ff8a5c; left:-130px; top:-170px; opacity:.6; }
+  .blob.b2 { width:500px; height:500px; background:#2dd4bf; right:-150px; top:40px; opacity:.5; }
+  .blob.b3 { width:430px; height:430px; background:#a78bfa; left:300px; bottom:-250px; opacity:.48; }
+  .blob.b4 { width:300px; height:300px; background:#fbbf24; right:180px; bottom:-160px; opacity:.5; }
+  /* dashboard window — 950x586 (aspect 1.62, per reference) */
+  .dash {
+    position:absolute; left:91px; top:54px; width:950px; height:586px;
+    border-radius:34px;
+    background:linear-gradient(155deg, rgba(255,255,255,.78), rgba(255,255,255,.55) 55%, rgba(255,255,255,.68));
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:0 40px 90px rgba(80,50,120,.28), inset 0 1px 0 rgba(255,255,255,.95);
+    backdrop-filter:blur(22px) saturate(160%);
+    overflow:hidden;
+  }
+  /* detached floating icon rail — 40px pill, ~56% of window height */
+  .rail {
+    position:absolute; left:39px; top:118px; width:40px; height:330px;
+    border-radius:20px;
+    background:linear-gradient(160deg, rgba(255,255,255,.66), rgba(255,255,255,.45));
+    border:1px solid rgba(255,255,255,.8);
+    box-shadow:0 24px 50px rgba(80,50,120,.22), inset 0 1px 0 rgba(255,255,255,.9);
+    backdrop-filter:blur(18px) saturate(160%);
+    display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:11px;
+  }
+  .ric {
+    width:30px; height:30px; border-radius:50%; position:relative; flex:0 0 30px;
+    display:flex; align-items:center; justify-content:center;
+    color:rgba(38,32,56,.45);
+  }
+  .ric svg { width:16px; height:16px; }
+  .ric.on { background:#262038; color:#ffffff; box-shadow:0 4px 10px rgba(38,32,56,.35); }
+  .ric .dot { position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; background:#ff6b5e; opacity:0; }
+  .rail .rsep { width:16px; height:1px; background:rgba(38,32,56,.15); margin:2px 0; }
+  /* bottom tab dock — floating pill over window bottom edge, static */
+  .dock {
+    position:absolute; left:351px; top:621px; width:430px; height:38px;
+    border-radius:999px;
+    background:rgba(255,255,255,.66); border:1px solid rgba(255,255,255,.85);
+    box-shadow:0 18px 40px rgba(80,50,120,.25), inset 0 1px 0 rgba(255,255,255,.9);
+    backdrop-filter:blur(14px);
+    display:flex; align-items:center; justify-content:center; gap:22px;
+    font-size:13px; font-weight:500; color:rgba(38,32,56,.75); letter-spacing:.3px;
+  }
+  .dock .play {
+    width:24px; height:24px; border-radius:50%; background:#262038; color:#fff;
+    display:flex; align-items:center; justify-content:center; margin-left:2px;
+  }
+  .dock .play svg { width:11px; height:11px; margin-left:1.5px; }
+  /* ---------- DASH INTERIOR ---------- */
+  .main2 { position:absolute; inset:0; padding:24px 24px 12px; display:flex; flex-direction:column; }
+  /* static header — greeting + subtext only, never moves */
+  .dhead { flex:0 0 auto; margin-bottom:13px; }
+  .dhead .greet { font-size:29px; font-weight:600; letter-spacing:.2px; color:#262038; line-height:1.15; }
+  .dhead .gsub { font-size:13px; color:rgba(38,32,56,.55); margin-top:3px; display:flex; align-items:center; gap:6px; }
+  .dhead .gsub .livedot { width:7px; height:7px; border-radius:50%; background:#0d9488; display:inline-block; }
+  .dhead .gsub .teal { color:#0d9488; font-weight:600; }
+  /* views swap area */
+  .views { position:relative; flex:1; min-height:0; }
+  .view { position:absolute; inset:0; display:flex; flex-direction:column; gap:14px; opacity:0; }
+  /* cards — bright glass */
+  .card {
+    background:rgba(255,255,255,.62);
+    border:1px solid rgba(255,255,255,.8);
+    border-radius:22px;
+    box-shadow:0 10px 24px rgba(80,50,120,.13), inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  /* ---------- shared bits ---------- */
+  .pill { font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; display:inline-block; white-space:nowrap; }
+  .pill.paid { background:rgba(13,148,136,.13); color:#0f766e; border:1px solid rgba(13,148,136,.4); }
+  .pill.pend { background:rgba(245,158,11,.15); color:#b45309; border:1px solid rgba(245,158,11,.45); }
+  .pill.over { background:rgba(244,63,94,.12); color:#e11d48; border:1px solid rgba(244,63,94,.4); }
+  .pill.rep  { background:rgba(124,58,237,.12); color:#7c3aed; border:1px solid rgba(124,58,237,.4); }
+  .pill.neww { background:rgba(255,107,94,.14); color:#e14b3c; border:1px solid rgba(255,107,94,.45); }
+  .pill.ong  { background:rgba(13,148,136,.13); color:#0f766e; border:1px solid rgba(13,148,136,.4); }
+  .flipwrap { position:relative; display:inline-block; }
+  .flipwrap .flipB { position:absolute; left:0; top:0; }
+  .tdots { display:flex; gap:3px; }
+  .tdot { width:5px; height:5px; border-radius:50%; background:#ff6b5e; display:block; }
+  .stat2 { padding:12px 14px 10px; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+  .stat2 .lab { font-size:12.5px; color:rgba(38,32,56,.55); font-weight:500; white-space:nowrap; padding-right:26px; }
+  .stat2 .ichip {
+    position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.6); display:flex; align-items:center; justify-content:center; color:#fff;
+  }
+  .stat2 .ichip svg { width:12px; height:12px; }
+  .stat2 .val { font-size:27px; font-weight:600; margin-top:2px; color:#262038; line-height:1.15; }
+  .stat2 .foot { margin-top:auto; }
+  .stat2 .dpill { font-size:11px; font-weight:600; padding:3px 8px; border-radius:999px; display:inline-block; white-space:nowrap; }
+  .stat2 .dpill span { font-weight:400; opacity:.65; }
+  .stat2.c-teal .ichip { background:linear-gradient(145deg,#2dd4bf,#0d9488); } .stat2.c-teal .dpill { background:rgba(13,148,136,.13); color:#0f766e; }
+  .stat2.c-violet .ichip { background:linear-gradient(145deg,#a78bfa,#7c3aed); } .stat2.c-violet .dpill { background:rgba(124,58,237,.12); color:#7c3aed; }
+  .stat2.c-coral .ichip { background:linear-gradient(145deg,#ff8a5c,#f43f5e); } .stat2.c-coral .dpill { background:rgba(244,63,94,.11); color:#e11d48; }
+  .stat2.c-amber .ichip { background:linear-gradient(145deg,#fbbf24,#f59e0b); } .stat2.c-amber .dpill { background:rgba(245,158,11,.15); color:#b45309; }
+  /* chart bars */
+  .bars { flex:1; display:flex; align-items:flex-end; gap:7px; margin-top:10px; border-bottom:1px solid rgba(38,32,56,.14); min-height:0; }
+  .bwrap { flex:1; height:100%; display:flex; align-items:flex-end; }
+  .bstack { width:100%; display:flex; flex-direction:column; transform-origin:bottom; }
+  .bseg.coral { background:linear-gradient(180deg,#ff8a5c,#fb4d6d); border-radius:4px 4px 0 0; }
+  .bseg.teal { background:linear-gradient(180deg,#2dd4bf,#0d9488); }
+  .xlab { display:flex; gap:7px; margin-top:6px; }
+  .xlab span { flex:1; text-align:center; font-size:11px; color:rgba(38,32,56,.42); }
+  /* tables */
+  .tablecard { flex:1; padding:10px 14px 4px; display:flex; flex-direction:column; min-width:0; overflow:hidden; }
+  .tablecard .thead { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+  .tablecard .thead .tt { font-size:14.5px; font-weight:600; color:#262038; }
+  .tablecard .thead .tctrl { font-size:11.5px; color:rgba(38,32,56,.45); font-weight:500; display:flex; gap:14px; }
+  .tcols { font-size:10px; letter-spacing:1.2px; font-weight:600; color:rgba(38,32,56,.42); padding:5px 2px 4px; border-bottom:1px solid rgba(38,32,56,.1); }
+  .trow { padding:4.5px 2px; border-bottom:1px solid rgba(38,32,56,.06); align-items:center; gap:8px; }
+  .trow:last-child { border-bottom:none; }
+  .pgrid, .pgridh { display:grid; grid-template-columns:.85fr 1.9fr .85fr .6fr .75fr; }
+  .cgrid, .cgridh { display:grid; grid-template-columns:1.9fr 1.25fr .95fr .85fr; }
+  .tcols span:last-child, .trow .vl { text-align:right; }
+  .trow .who { display:flex; align-items:center; gap:9px; min-width:0; }
+  .trow .av2 { width:24px; height:24px; flex:0 0 24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:#fff; }
+  .trow .nm { font-size:12.5px; font-weight:600; white-space:nowrap; color:#262038; line-height:1.15; }
+  .trow .nm span { display:block; font-size:10.5px; color:rgba(38,32,56,.45); font-weight:400; }
+  .trow .inv { font-size:12.5px; font-weight:600; color:rgba(38,32,56,.75); white-space:nowrap; }
+  .trow .jb { font-size:12px; color:rgba(38,32,56,.65); white-space:nowrap; overflow:hidden; }
+  .trow .dt { font-size:12px; color:rgba(38,32,56,.5); white-space:nowrap; }
+  .trow .vl { font-size:13px; font-weight:600; color:#262038; white-space:nowrap; }
+  .trow .stars { font-size:12.5px; color:#f59e0b; letter-spacing:1.5px; white-space:nowrap; }
+  .trow .stars span { color:rgba(38,32,56,.35); font-size:11px; letter-spacing:0; margin-left:3px; }
+  /* ---------- HOME ---------- */
+  .hgrid { display:flex; gap:14px; height:232px; flex:0 0 232px; }
+  .primary { flex:1; padding:15px 18px 12px; display:flex; flex-direction:column; overflow:hidden;
+    background:linear-gradient(150deg,#ff8a5c,#fb4d6d); border-color:rgba(255,255,255,.5);
+    box-shadow:0 14px 30px rgba(244,63,94,.35), inset 0 1px 0 rgba(255,255,255,.4); }
+  .primary .plab { font-size:13.5px; color:rgba(255,255,255,.85); font-weight:500; display:flex; align-items:center; justify-content:space-between; }
+  .primary .plab .live2 { font-size:11px; color:#fff; font-weight:700; letter-spacing:.6px; display:flex; align-items:center; gap:5px; }
+  .primary .plab .live2 i { width:7px; height:7px; border-radius:50%; background:#fff; display:block; }
+  .primary .pval { font-size:38px; font-weight:600; letter-spacing:.2px; margin-top:4px; color:#fff; line-height:1.1; }
+  .primary .pdelta { font-size:12.5px; color:#ffe4e0; font-weight:500; margin-top:2px; }
+  .primary .pdelta span { color:rgba(255,255,255,.65); font-weight:400; }
+  .pctrls { display:flex; gap:7px; margin-top:11px; }
+  .pbtn { font-size:12px; font-weight:600; padding:6px 11px; border-radius:999px; background:#fff; color:#e14b3c; white-space:nowrap; }
+  .pchip { font-size:12px; font-weight:500; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); color:#fff; white-space:nowrap; }
+  .psub { margin-top:auto; border-top:1px solid rgba(255,255,255,.25); padding-top:8px; }
+  .psub .pslab { font-size:10px; letter-spacing:1.4px; font-weight:600; color:rgba(255,255,255,.6); margin-bottom:5px; }
+  .psub .pm { display:flex; align-items:center; font-size:12.5px; color:rgba(255,255,255,.85); line-height:1.55; }
+  .psub .pm i { width:7px; height:7px; border-radius:50%; margin-right:8px; display:block; flex:0 0 7px; background:#fff; }
+  .psub .pm b { margin-left:auto; font-weight:600; color:#fff; font-size:12.5px; }
+  .hstats { width:284px; flex:0 0 284px; display:flex; flex-direction:column; gap:14px; }
+  .hstats .stat2 { flex:1; }
+  .hbottom { display:flex; gap:14px; flex:1; min-height:0; }
+  .feedcard { flex:1; padding:12px 15px; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+  .feedcard .fh { font-size:14.5px; font-weight:600; color:#262038; display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .feedcard .fh .live2 { font-size:10px; color:#7c3aed; font-weight:700; letter-spacing:1px; display:flex; align-items:center; gap:5px; }
+  .feedcard .fh .live2 i { width:6px; height:6px; border-radius:50%; background:#8b5cf6; display:block; }
+  .frow { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid rgba(38,32,56,.06); }
+  .frow:last-of-type { border-bottom:none; }
+  .frow .fdot { width:9px; height:9px; flex:0 0 9px; border-radius:50%; }
+  .frow .ft { font-size:12.5px; color:rgba(38,32,56,.78); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .frow .ft b { color:#262038; font-weight:600; }
+  .frow .ftm { margin-left:auto; font-size:11px; color:rgba(38,32,56,.42); white-space:nowrap; padding-left:10px; }
+  .aitype { margin-top:auto; display:flex; align-items:center; gap:7px; font-size:11px; color:rgba(38,32,56,.5); font-style:italic; }
+  .minichart { width:284px; flex:0 0 284px; padding:14px 16px 11px; display:flex; flex-direction:column; overflow:hidden; }
+  .minichart .ct { font-size:14px; font-weight:600; color:#262038; }
+  .minichart .csub { font-size:11px; color:rgba(38,32,56,.5); margin-top:1px; }
+  /* ---------- PIPELINE (kanban) ---------- */
+  .kanban { flex:1; display:flex; gap:12px; min-height:0; }
+  .kcol { flex:1; display:flex; flex-direction:column; gap:9px; padding:11px 10px; border-radius:18px; min-width:0;
+    background:rgba(255,255,255,.42); border:1px solid rgba(255,255,255,.65);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.7); }
+  .khead { display:flex; align-items:center; gap:7px; padding:0 2px 3px; }
+  .khead i { width:9px; height:9px; border-radius:50%; display:block; flex:0 0 9px; }
+  .khead .kt { font-size:13px; font-weight:700; letter-spacing:.4px; color:#262038; }
+  .khead .kc { margin-left:auto; font-size:11px; font-weight:700; color:#fff; border-radius:999px; padding:1px 8px; }
+  .kcard { background:rgba(255,255,255,.88); border:1px solid rgba(255,255,255,.95); border-radius:14px; padding:9px 11px 8px;
+    box-shadow:0 6px 14px rgba(80,50,120,.12); }
+  .kcard .kn { font-size:12.5px; font-weight:600; color:#262038; line-height:1.2; white-space:nowrap; overflow:hidden; }
+  .kcard .kj { font-size:11px; color:rgba(38,32,56,.55); margin-top:1px; white-space:nowrap; overflow:hidden; }
+  .kcard .kb { display:flex; align-items:center; justify-content:space-between; margin-top:6px; }
+  .kcard .kv { font-size:12.5px; font-weight:700; }
+  .kcard .kd { font-size:10px; font-weight:600; color:rgba(38,32,56,.45); }
+  .kfoot { margin-top:auto; padding:0 2px; font-size:11px; color:rgba(38,32,56,.5); display:flex; justify-content:space-between; }
+  .kfoot b { color:#262038; font-weight:700; }
+  /* ---------- PAYMENTS ---------- */
+  .kpirow { display:flex; gap:14px; height:118px; flex:0 0 118px; }
+  .kpirow .stat2 { flex:1; }
+  .paybottom { display:flex; gap:14px; flex:1; min-height:0; }
+  .revcard { width:300px; flex:0 0 300px; padding:14px 16px 11px; display:flex; flex-direction:column; overflow:hidden; }
+  .revcard .ct { font-size:14px; font-weight:600; color:#262038; }
+  .revcard .csub { font-size:11px; color:rgba(38,32,56,.5); margin-top:1px; }
+  .revbars { flex:1; display:flex; align-items:flex-end; gap:9px; margin-top:10px; border-bottom:1px solid rgba(38,32,56,.14); min-height:0; }
+  .revbars .bwrap .bstack .bseg { background:linear-gradient(180deg,#2dd4bf,#0d9488); border-radius:4px 4px 0 0; height:100%; }
+  /* ---------- CLIENTS ---------- */
+  .clbottom { display:flex; gap:14px; flex:1; min-height:0; }
+  .mixcard { width:284px; flex:0 0 284px; padding:13px 15px 11px; display:flex; flex-direction:column; overflow:hidden; }
+  .mixcard .ct { font-size:14px; font-weight:600; color:#262038; margin-bottom:6px; }
+  .donutwrap { flex:1; display:flex; align-items:center; gap:13px; min-height:0; }
+  .dlegend { display:flex; flex-direction:column; gap:7px; font-size:12px; color:rgba(38,32,56,.68); }
+  .dlegend .dl { display:flex; align-items:center; gap:7px; white-space:nowrap; }
+  .dlegend .dl i { width:8px; height:8px; border-radius:50%; display:block; flex:0 0 8px; }
+  .dlegend .dl b { margin-left:auto; font-weight:600; color:#262038; padding-left:10px; }
+  .mixfoot { font-size:11.5px; color:rgba(38,32,56,.55); border-top:1px solid rgba(38,32,56,.08); padding-top:8px; display:flex; align-items:center; gap:6px; }
+  .mixfoot .stars { color:#f59e0b; font-size:12.5px; letter-spacing:1px; }
+
+  /* ---------- CODE ZONE ---------- */
+  .codewin {
+    margin:56px 48px 0; height:596px; border-radius:24px; overflow:hidden;
+    background:#0b0e15; border:1px solid rgba(255,255,255,.11);
+    box-shadow:0 34px 80px rgba(0,0,0,.6);
+  }
+  .codebar {
+    height:64px; background:#11141d; display:flex; align-items:center; gap:9px;
+    padding:0 22px; border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .cdot { width:15px; height:15px; border-radius:50%; }
+  .tab {
+    margin-left:20px; background:#0b0e15; border:1px solid rgba(255,255,255,.08); border-bottom:none;
+    padding:9px 18px; border-radius:10px 10px 0 0; font-family:'Liberation Mono',monospace;
+    font-size:16.5px; color:#d7deeb; align-self:flex-end; height:44px; display:flex; align-items:center;
+  }
+  .tab i { color:#ff8a3d; font-style:normal; }
+  pre {
+    padding:30px 34px; font-family:'Liberation Mono','DejaVu Sans Mono',monospace;
+    font-size:23.5px; line-height:1.85; color:#a9b7d0; white-space:pre;
+  }
+  .k { color:#c792ea; } .s { color:#9ece6a; } .t { color:#7aa2f7; }
+  .f { color:#82aaff; } .p { color:#89ddff; } .n { color:#f78c6c; } .cm { color:#565f89; }
+</style>
+</head>
+<body>
+  <div class="title-zone">
+    <div class="name">Glassy CRM</div>
+    <div class="ver">V6</div>
+  </div>
+
+  <div class="stage">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="blob b4"></div>
+    <div class="rail" id="rail"></div>
+    <div class="dash">
+      <div class="main2">
+        <div class="dhead">
+          <div class="greet">Good morning, Alderbrook Homes</div>
+          <div class="gsub">Friday · 3 site visits today · <span class="livedot" id="livedot"></span><span class="teal">AI receptionist live</span></div>
+        </div>
+        <div class="views" id="views"></div>
+      </div>
+    </div>
+    <div class="dock">
+      <span>Home</span><span>Pipeline</span><span>Payments</span><span>Clients</span>
+      <span class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></span>
+    </div>
+  </div>
+
+  <div class="codewin">
+    <div class="codebar">
+      <div class="cdot" style="background:#ff5f57"></div>
+      <div class="cdot" style="background:#febc2e"></div>
+      <div class="cdot" style="background:#28c840"></div>
+      <div class="tab">Pipeline<i>.jsx</i></div>
+    </div>
+    <pre><code><span class="k">const</span> <span class="f">COLUMNS</span> = [
+  { id: <span class="s">'new'</span>,    label: <span class="s">'New'</span>,    color: <span class="s">'#ff6b5e'</span> },
+  { id: <span class="s">'quoted'</span>, label: <span class="s">'Quoted'</span>, color: <span class="s">'#f59e0b'</span> },
+  { id: <span class="s">'booked'</span>, label: <span class="s">'Booked'</span>, color: <span class="s">'#0d9488'</span> },
+  { id: <span class="s">'done'</span>,   label: <span class="s">'Done'</span>,   color: <span class="s">'#7c3aed'</span> },
+];
+
+<span class="k">const</span> <span class="f">PipelineBoard</span> = ({ jobs }) =&gt; (
+  &lt;<span class="t">div</span> <span class="p">className</span>=<span class="s">"kanban"</span>&gt;
+    {COLUMNS.<span class="f">map</span>(col =&gt; (
+      &lt;<span class="t">KanbanColumn</span> <span class="p">key</span>={col.id} {...col}&gt;
+        {jobs.<span class="f">filter</span>(j =&gt; j.stage === col.id)
+              .<span class="f">map</span>(j =&gt; &lt;<span class="t">JobCard</span> {...j} /&gt;)}
+      &lt;/<span class="t">KanbanColumn</span>&gt;
+    ))}
+  &lt;/<span class="t">div</span>&gt;
+);</code></pre>
+  </div>
+<script>
+/* ---------- icons ---------- */
+const P = {
+  home:'<path d="M3 10.5L12 3l9 7.5"/><path d="M5.5 9.3V21h13V9.3"/><path d="M9.5 21v-6h5v6"/>',
+  kanban:'<rect x="3" y="4" width="4.6" height="16" rx="1.6"/><rect x="9.7" y="4" width="4.6" height="10" rx="1.6"/><rect x="16.4" y="4" width="4.6" height="13" rx="1.6"/>',
+  receipt:'<path d="M6 3h12v18l-2-1.4L14 21l-2-1.4L10 21l-2-1.4L6 21z"/><path d="M9 8h6M9 12h6"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M16 5.2a3.5 3.5 0 0 1 0 5.9M18.5 15.4c1 .8 1.7 2 2 4.6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  pound:'<path d="M17.5 6.5C16.6 5 14.9 4 13 4c-2.8 0-5 2.2-5 5v2H5.5M8 15H5.5M8 11h6.5M8 11v5.5L6.8 20h11"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/>'
+};
+const svg = (paths, fill) => `<svg viewBox="0 0 24 24" fill="${fill ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+/* ---------- rail (static chrome; only its active state changes) ---------- */
+const RAIL = ['home','kanban','receipt','users'];
+document.getElementById('rail').innerHTML =
+  RAIL.map((k,i)=>`<div class="ric" data-ic="${i}">${svg(P[k])}<span class="dot"></span></div>`).join('') +
+  `<div class="rsep"></div><div class="ric">${svg(P.plus)}</div><div class="ric">${svg(P.check)}</div>`;
+/* ---------- builders ---------- */
+const AV = ['linear-gradient(145deg,#ff8a5c,#f43f5e)','linear-gradient(145deg,#2dd4bf,#0d9488)','linear-gradient(145deg,#fbbf24,#f59e0b)','linear-gradient(145deg,#a78bfa,#7c3aed)','linear-gradient(145deg,#60a5fa,#2563eb)'];
+const stat = (lab, icon, cls, val, pill) => `<div class="stat2 card ${cls}"><div class="lab">${lab}</div><div class="ichip">${svg(P[icon])}</div><div class="val">${val}</div><div class="foot"><span class="dpill">${pill}</span></div></div>`;
+const sbars = (vals, labs) => `<div class="bars">${vals.map((v,i)=>`<div class="bwrap"><div class="bstack" data-bar="${i}" style="height:${(v*100).toFixed(1)}%"><div class="bseg coral" style="flex:42"></div><div class="bseg teal" style="flex:58"></div></div></div>`).join('')}</div><div class="xlab">${labs.map(l=>`<span>${l}</span>`).join('')}</div>`;
+const who = (i, ini, nm, area) => `<div class="who"><div class="av2" style="background:${AV[i % 5]}">${ini}</div><div class="nm">${nm}<span>${area}</span></div></div>`;
+const frow = (color, html, tm) => `<div class="frow"><span class="fdot" style="background:${color}"></span><div class="ft">${html}</div><div class="ftm">${tm}</div></div>`;
+const kcard = (nm, job, val, color, date, extra) => `<div class="kcard"${extra || ''}><div class="kn">${nm}</div><div class="kj">${job}</div><div class="kb"><span class="kv" style="color:${color}">${val}</span><span class="kd">${date}</span></div></div>`;
+const kcol = (dot, name, count, bg, cards, total) => `<div class="kcol"><div class="khead"><i style="background:${dot}"></i><span class="kt">${name}</span><span class="kc" style="background:${bg}">${count}</span></div>${cards}<div class="kfoot"><span>Total</span><b>${total}</b></div></div>`;
+const prow = (cells, cls) => `<div class="trow ${cls}">${cells}</div>`;
+const VIEWS = [
+/* ---------- 1 · HOME ---------- */
+`<div class="hgrid">
+   <div class="primary card">
+     <div class="plab">Revenue this month <span class="live2"><i class="livedot2"></i>AI RECEPTIONIST LIVE</span></div>
+     <div class="pval">£<span data-count="284600" data-fmt="1">0</span></div>
+     <div class="pdelta">▲ 18% <span>vs last month</span></div>
+     <div class="pctrls"><span class="pbtn">This month ▾</span><span class="pchip">Invoices</span><span class="pchip">Jobs</span></div>
+     <div class="psub"><div class="pslab">TODAY · FRIDAY</div>
+       <div class="pm"><i></i>Site visits booked<b>3</b></div>
+       <div class="pm"><i></i>Quotes ready to send<b>2</b></div>
+       <div class="pm"><i></i>Invoices falling due<b>£41,250</b></div>
+     </div>
+   </div>
+   <div class="hstats">
+     ${stat('New enquiries','users','c-teal','<span data-count="42">0</span>','▲ 12% <span>this week</span>')}
+     ${stat('Jobs in progress','kanban','c-violet','<span data-count="17">0</span>','4 <span>finishing this week</span>')}
+   </div>
+ </div>
+ <div class="hbottom">
+   <div class="feedcard card">
+     <div class="fh">Live activity <span class="live2"><i class="livedot2"></i>LIVE</span></div>
+     ${frow('#ff6b5e','<b>Poppy Hartley</b> booked a site visit, kitchen extension','4m')}
+     ${frow('#0d9488','Invoice #1042 paid in full, <b>£18,400</b> from Theo Whitfield','21m')}
+     ${frow('#f59e0b','<b>Ruby Sanderson</b> left a 5 star review on Google','38m')}
+     ${frow('#7c3aed','Quote sent to <b>Freddie Lawson</b>, rear extension £52,300','1h')}
+     <div class="aitype"><span class="tdots"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></span>AI is replying to a new enquiry…</div>
+   </div>
+   <div class="minichart card">
+     <div class="ct">Enquiries this week</div>
+     <div class="csub">Website coral · Referrals teal</div>
+     ${sbars([.5,.78,.62,.95,.7,1,.84], ['M','T','W','T','F','S','S'])}
+   </div>
+ </div>`,
+/* ---------- 2 · PIPELINE ---------- */
+`<div class="kanban">
+   ${kcol('#ff6b5e','New','5','#fb4d6d',
+     kcard('Poppy Hartley','Kitchen extension · Clifton','£48,500','#e14b3c','Today') +
+     kcard('Noah Pemberton','Loft conversion · Bath','£39,200','#e14b3c','Today') +
+     kcard('Isla McAllister','Barn conversion · Tetbury','£124,000','#e14b3c','Yday'),
+     '£386,700')}
+   ${kcol('#f59e0b','Quoted','4','#f59e0b',
+     kcard('Freddie Lawson','Rear extension · Bristol','£52,300','#b45309','Tue') +
+     kcard('Grace Donnelly','Annexe build · Stroud','£87,900','#b45309','Mon') +
+     kcard('Theo Whitfield','Renovation · Cheltenham','£61,750','#b45309','Mon', ' data-out="1.02"'),
+     '£264,450')}
+   ${kcol('#0d9488','Booked','6','#0d9488',
+     kcard('Theo Whitfield','Renovation · Cheltenham','£61,750','#0f766e','Starts 12 Jan', ' data-fade="1.02" style="opacity:0"') +
+     kcard('Alfie Mercer','Garden studio · Cirencester','£33,400','#0f766e','Starts 19 Jan') +
+     kcard('Evie Thornton','Side extension · Clifton','£44,600','#0f766e','Starts 26 Jan'),
+     '£412,300')}
+   ${kcol('#7c3aed','Done','9','#7c3aed',
+     kcard('Ruby Sanderson','Kitchen remodel · Bath','£36,900','#7c3aed','Paid ✓') +
+     kcard('Jack Halloway','Porch + driveway · Gloucester','£18,250','#7c3aed','Paid ✓'),
+     '£298,150')}
+ </div>`,
+/* ---------- 3 · PAYMENTS ---------- */
+`<div class="kpirow">
+   ${stat('Paid this month','pound','c-coral','£<span data-count="196300" data-fmt="1">0</span>','▲ 14% <span>vs last month</span>')}
+   ${stat('Awaiting payment','clock','c-amber','£<span data-count="41250" data-fmt="1">0</span>','5 <span>invoices open</span>')}
+   ${stat('Collected on time','check','c-teal','<span data-count="96">0</span>%','AI <span>chases every one</span>')}
+ </div>
+ <div class="paybottom">
+   <div class="tablecard card">
+     <div class="thead"><div class="tt">Invoices</div><div class="tctrl"><span>⌕ Search</span><b style="color:#e14b3c">Filter ▾</b></div></div>
+     <div class="tcols pgridh"><span>INVOICE</span><span>CLIENT</span><span>STATUS</span><span>DUE</span><span>AMOUNT</span></div>
+     ${prow('<div class="inv">#1043</div>' + who(0,'PH','Poppy Hartley','Clifton') + '<div><span class="flipwrap"><span class="pill pend flipA">Pending</span><span class="pill paid flipB" style="opacity:0">Paid</span></span></div><div class="dt">Today</div><div class="vl">£12,600</div>', 'pgrid')}
+     ${prow('<div class="inv">#1042</div>' + who(1,'TW','Theo Whitfield','Cheltenham') + '<div><span class="pill paid">Paid</span></div><div class="dt">Paid Fri</div><div class="vl">£18,400</div>', 'pgrid')}
+     ${prow('<div class="inv">#1041</div>' + who(3,'RS','Ruby Sanderson','Bath') + '<div><span class="pill paid">Paid</span></div><div class="dt">Paid Wed</div><div class="vl">£36,900</div>', 'pgrid')}
+     ${prow('<div class="inv">#1040</div>' + who(2,'GD','Grace Donnelly','Stroud') + '<div><span class="pill pend">Pending</span></div><div class="dt">Mon</div><div class="vl">£21,750</div>', 'pgrid')}
+     ${prow('<div class="inv">#1038</div>' + who(4,'JH','Jack Halloway','Gloucester') + '<div><span class="pill over">Overdue</span></div><div class="dt">4 days</div><div class="vl">£6,850</div>', 'pgrid')}
+   </div>
+   <div class="revcard card">
+     <div class="ct">Revenue collected</div>
+     <div class="csub">Last 6 months · paid invoices</div>
+     <div class="revbars">${[.42,.58,.5,.74,.66,1].map((v,i)=>`<div class="bwrap"><div class="bstack" data-bar="${i}" style="height:${(v*100).toFixed(1)}%"><div class="bseg"></div></div></div>`).join('')}</div>
+     <div class="xlab">${['Aug','Sep','Oct','Nov','Dec','Jan'].map(l=>`<span>${l}</span>`).join('')}</div>
+   </div>
+ </div>`,
+/* ---------- 4 · CLIENTS ---------- */
+`<div class="clbottom">
+   <div class="tablecard card">
+     <div class="thead"><div class="tt">Clients</div><div class="tctrl"><span>⌕ Search</span><b style="color:#0f766e">Filter ▾</b></div></div>
+     <div class="tcols cgridh"><span>CLIENT</span><span>LATEST JOB</span><span>STATUS</span><span>RATING</span></div>
+     ${prow(who(3,'RS','Ruby Sanderson','Bath') + '<div class="jb">Kitchen remodel</div><div><span class="pill rep">Repeat client</span></div><div class="stars">★★★★★<span>5.0</span></div>', 'cgrid')}
+     ${prow(who(1,'TW','Theo Whitfield','Cheltenham') + '<div class="jb">Full renovation</div><div><span class="pill ong">Ongoing</span></div><div class="stars">★★★★★<span>5.0</span></div>', 'cgrid')}
+     ${prow(who(0,'PH','Poppy Hartley','Clifton') + '<div class="jb">Kitchen extension</div><div><span class="pill neww">New</span></div><div class="stars">★★★★★<span>New</span></div>', 'cgrid')}
+     ${prow(who(2,'GD','Grace Donnelly','Stroud') + '<div class="jb">Annexe build</div><div><span class="pill rep">Repeat client</span></div><div class="stars">★★★★☆<span>4.8</span></div>', 'cgrid')}
+     ${prow(who(4,'JH','Jack Halloway','Gloucester') + '<div class="jb">Porch + driveway</div><div><span class="pill ong">Ongoing</span></div><div class="stars">★★★★★<span>5.0</span></div>', 'cgrid')}
+     ${prow(who(1,'IM','Isla McAllister','Tetbury') + '<div class="jb">Barn conversion</div><div><span class="pill neww">New</span></div><div class="stars">★★★★★<span>New</span></div>', 'cgrid')}
+   </div>
+   <div class="mixcard card">
+     <div class="ct">Where clients come from</div>
+     <div class="donutwrap">
+       <svg width="112" height="112" viewBox="0 0 120 120">
+         <circle cx="60" cy="60" r="46" fill="none" stroke="rgba(38,32,56,.07)" stroke-width="17"/>
+         <circle class="seg" data-len="132.9" cx="60" cy="60" r="46" fill="none" stroke="#ff6b5e" stroke-width="17" stroke-dasharray="132.9 156.1" transform="rotate(-90 60 60)"/>
+         <circle class="seg" data-len="98.3" cx="60" cy="60" r="46" fill="none" stroke="#0d9488" stroke-width="17" stroke-dasharray="98.3 190.7" transform="rotate(75.6 60 60)"/>
+         <circle class="seg" data-len="57.8" cx="60" cy="60" r="46" fill="none" stroke="#f59e0b" stroke-width="17" stroke-dasharray="57.8 231.2" transform="rotate(198 60 60)"/>
+       </svg>
+       <div class="dlegend">
+         <div class="dl"><i style="background:#ff6b5e"></i>Repeat<b>46%</b></div>
+         <div class="dl"><i style="background:#0d9488"></i>Referrals<b>34%</b></div>
+         <div class="dl"><i style="background:#f59e0b"></i>Website<b>20%</b></div>
+       </div>
+     </div>
+     <div class="mixfoot"><span class="stars">★★★★★</span><b style="color:#262038">4.9</b>&nbsp;average · 312 reviews</div>
+   </div>
+ </div>`
+
+];
+document.getElementById('views').innerHTML = VIEWS.map((v,i)=>`<div class="view" id="v${i}">${v}</div>`).join('');
+
+/* ---------- motion ----------
+   Chrome (rail, header, window, dock, code pane) is never transformed.
+   A tab switch = sidebar active state flips at the slot boundary, then the
+   content area crossfades IN PLACE over 200ms. No translations anywhere.
+   Inside a view, only in-place micro-animation: counters, bars growing from
+   their baseline, donut drawing, pill flips, kanban card handover (a card
+   crossfades out of one column as its twin fades into the next), typing dots. */
+function renderAt(t) {
+  const DUR = 1.5, XF = 0.2;
+  const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+  const easeOut = x=>1-Math.pow(1-x,3);
+  const smooth = x=>{ x = clamp(x,0,1); return x*x*(3-2*x); };
+  const slotF = t / DUR;
+  const slot = Math.floor(slotF) % 4;
+  const lt = t - Math.floor(slotF) * DUR;
+  const prev = (slot + 3) % 4;
+
+  document.querySelectorAll('.view').forEach((el,i)=>{
+    let op = 0, age = 0;
+    if (i === slot)      { op = lt < XF ? smooth(lt / XF) : 1; age = lt; }
+    else if (i === prev) { op = lt < XF ? 1 - smooth(lt / XF) : 0; age = DUR + lt; }
+    el.style.opacity = op.toFixed(3);
+    el.style.zIndex = i === slot ? 2 : 1;
+    el.style.visibility = op <= 0 ? 'hidden' : 'visible';
+    if (op <= 0) return;
+    const p = easeOut(clamp(age / 0.9, 0, 1));
+    el.querySelectorAll('[data-count]').forEach(c=>{
+      const v = Math.round(parseFloat(c.dataset.count) * p);
+      c.textContent = c.dataset.fmt ? v.toLocaleString('en-GB') : v;
+    });
+    el.querySelectorAll('[data-bar]').forEach(b=>{
+      const bp = easeOut(clamp((age - 0.05 - parseInt(b.dataset.bar) * 0.03) / 0.65, 0, 1));
+      b.style.transform = `scaleY(${Math.max(0.02, bp).toFixed(3)})`;
+    });
+    el.querySelectorAll('.seg').forEach((s,idx)=>{
+      const len = parseFloat(s.dataset.len);
+      const sp = easeOut(clamp((age - 0.1 - idx * 0.12) / 0.7, 0, 1));
+      s.style.strokeDashoffset = (len * (1 - sp)).toFixed(1);
+    });
+    el.querySelectorAll('[data-fade]').forEach(f=>{
+      const fp = easeOut(clamp((age - parseFloat(f.dataset.fade)) / 0.3, 0, 1));
+      f.style.opacity = fp.toFixed(3);
+    });
+    el.querySelectorAll('[data-out]').forEach(f=>{
+      const fp = easeOut(clamp((age - parseFloat(f.dataset.out)) / 0.3, 0, 1));
+      f.style.opacity = (1 - fp).toFixed(3);
+    });
+    const fw = el.querySelector('.flipwrap');
+    if (fw) {
+      const fp = clamp((age - 1.05) / 0.15, 0, 1);
+      fw.querySelector('.flipA').style.opacity = (1 - fp).toFixed(3);
+      fw.querySelector('.flipB').style.opacity = fp.toFixed(3);
+    }
+  });
+
+  /* sidebar active state — flips at the boundary, dot fades in over 150ms */
+  document.querySelectorAll('.ric[data-ic]').forEach(ic=>{
+    const on = parseInt(ic.dataset.ic) === slot;
+    ic.classList.toggle('on', on);
+    ic.querySelector('.dot').style.opacity = on ? clamp(lt / 0.15, 0, 1).toFixed(3) : 0;
+  });
+  /* live dots + AI typing dots — continuous, subtle, like a real app */
+  const pulse = 0.55 + 0.45 * Math.sin(t * 2.4);
+  const ld = document.getElementById('livedot');
+  if (ld) ld.style.opacity = pulse.toFixed(3);
+  document.querySelectorAll('.livedot2').forEach(d=>{ d.style.opacity = pulse.toFixed(3); });
+  document.querySelectorAll('.tdot').forEach((d,k)=>{
+    d.style.opacity = (0.3 + 0.4 * (0.5 + 0.5 * Math.sin(t * 4.2 - k * 1.05))).toFixed(3);
+  });
+}
+window.renderAt = renderAt;
+renderAt(parseFloat(new URLSearchParams(location.search).get('t') || '0'));
+</script>
+</body>
+</html>
