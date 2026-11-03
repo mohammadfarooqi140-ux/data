@@ -395,7 +395,7 @@ const VIEWS = [
      row(who(0,'DW','Daniel Whitfield','Wellow') + '<div class="jb">Extension</div><div><span class="pill new">New</span></div><div class="dt">Today · 10:12</div><div class="vl">£64,500</div>'),
      row(who(1,'AF','Amelia Foster','Bathwick') + '<div class="jb">Renovation</div><div><span class="pill bok">Visit booked</span></div><div class="dt">Today · 09:47</div><div class="vl">£96,200</div>'),
      row(who(2,'SM','Sophie Marlow','Combe Down') + '<div class="jb">Loft</div><div><span class="pill rep">Replied</span></div><div class="dt">Today · 09:15</div><div class="vl">£41,300</div>'),
-     row(who(3,'BA','Ben Adeyemi','Larkhall') + '<div class="jb">Garden room</div><div><span class="pill new">New</span></div><div class="dt">Yesterday</div><div class="vl">£29,750</div>')
+     row(who(3,'BH','Ben Harrington','Larkhall') + '<div class="jb">Garden room</div><div><span class="pill new">New</span></div><div class="dt">Yesterday</div><div class="vl">£29,750</div>')
    ])}
    <div class="rstack">${aifeed()}${slimCal}</div>
  </div>`,
@@ -413,7 +413,7 @@ const VIEWS = [
      kcard('Tom Ellery','Loft · Twerton','£43,100', kp('sage','SENT'), 0.36))}
    ${kcol('Booked', 4, '£220,600',
      kcard('Amelia Foster','Renovation · Bathwick','£96,200', kp('fill','STARTS 22 JUN'), 0.07) +
-     kcard('Ben Adeyemi','Garden room · Larkhall','£29,750', kp('line','DEPOSIT PAID'), 0.16) +
+     kcard('Ben Harrington','Garden room · Larkhall','£29,750', kp('line','DEPOSIT PAID'), 0.16) +
      kcard('Jack Rennie','Extension · Odd Down','£58,400', kp('fill','STARTS 29 JUN'), 0.25) +
      kcard('Olivia Fenn','Kitchen · Combe Down','£36,250', kp('line','DEPOSIT PAID'), 0.34))}
    ${kcol('In progress', 3, '£200,000',
@@ -441,7 +441,7 @@ const VIEWS = [
  </div>
  ${table('Latest invoices', ['INVOICE','CLIENT','STATUS','DATE','AMOUNT'], [
    row('<div class="inv">INV-2041</div>' + who(1,'AF','Amelia Foster','Bathwick') + '<div><span class="pill bok">Paid</span></div><div class="dt">28 Jun</div><div class="vl">£18,500</div>'),
-   row('<div class="inv">INV-2040</div>' + who(3,'BA','Ben Adeyemi','Larkhall') + '<div><span class="pill bok">Paid</span></div><div class="dt">26 Jun</div><div class="vl">£7,400</div>'),
+   row('<div class="inv">INV-2040</div>' + who(3,'BH','Ben Harrington','Larkhall') + '<div><span class="pill bok">Paid</span></div><div class="dt">26 Jun</div><div class="vl">£7,400</div>'),
    row('<div class="inv">INV-2039</div>' + who(2,'GL','Grace Lindley','Widcombe') + '<div><span class="flipwrap"><span class="pill rep flipA">Sent</span><span class="pill bok flipB">Paid</span></span></div><div class="dt">24 Jun</div><div class="vl">£21,750</div>'),
    row('<div class="inv">INV-2038</div>' + who(4,'JR','Jack Rennie','Odd Down') + '<div><span class="pill rep">Sent</span></div><div class="dt">21 Jun</div><div class="vl">£12,300</div>'),
    row('<div class="inv">INV-2036</div>' + who(0,'HF','Hartley family','Saltford') + '<div><span class="pill pen">Overdue</span></div><div class="dt">12 Jun</div><div class="vl">£4,260</div>')
@@ -454,7 +454,7 @@ const VIEWS = [
        ${li(1,'AF','Amelia Foster','Bathwick · 3 jobs · £148,200', mp('bok','ACTIVE'), 1)}
        ${li(0,'DW','Daniel Whitfield','Wellow · 2 jobs · £91,300', mp('bok','ACTIVE'), 0)}
        ${li(2,'GL','Grace Lindley','Widcombe · 4 jobs · £203,450', mp('gold','REPEAT'), 0)}
-       ${li(3,'BA','Ben Adeyemi','Larkhall · 1 job · £29,750', mp('new','NEW'), 0)}
+       ${li(3,'BH','Ben Harrington','Larkhall · 1 job · £29,750', mp('new','NEW'), 0)}
        ${li(4,'IC','Isla Cameron','Bear Flat · 2 jobs · £57,600', mp('bok','ACTIVE'), 0)}
        ${li(0,'JR','Jack Rennie','Odd Down · 3 jobs · £121,900', mp('gold','REPEAT'), 0)}
      </div>
