@@ -376,7 +376,7 @@ const who = (i, ini, nm, area) => `<div class="who"><div class="av2" style="back
 const table = (title, cols, rows) => `<div class="tablecard card"><div class="thead"><div class="tt">${title}</div><div class="tctrl"><span>⌕ Search</span><b>Filter ▾</b></div></div><div class="tcols">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${rows.join('')}</div>`;
 const row = (cells) => `<div class="trow">${cells}</div>`;
 const aifeed = () => `<div class="aicard card"><div class="st">AI Replies <span class="live2"><i class="livedot2"></i>LIVE</span></div>
-  <div class="airow"><div class="ail1"><span class="ain">Priya Shah</span><span class="ait2">✓ VISIT BOOKED</span></div><div class="aim">“Tuesday 9:30 works — you are booked in.” <span>· 2m ago</span></div></div>
+  <div class="airow"><div class="ail1"><span class="ain">Eleanor Price</span><span class="ait2">✓ VISIT BOOKED</span></div><div class="aim">“Tuesday 9:30 works — you are booked in.” <span>· 2m ago</span></div></div>
   <div class="airow"><div class="ail1"><span class="ain">James Whitfield</span><span class="ait2">✓ REPLIED IN 31s</span></div><div class="aim">“Thanks! Thursday morning suits us.” <span>· 9m ago</span></div></div>
   <div class="aitype"><span class="tdots"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></span>AI is replying to a new enquiry…</div></div>`;
 const slimCal = `<div class="slimcard card"><div class="sic">${svg(P.cal)}</div><div><div class="st1">Next visit — Shah, loft conversion</div><div class="st2">Today · 11:00 AM · Ascot</div></div></div>`;
@@ -415,7 +415,7 @@ const VIEWS = [
    <div class="lstack">${aifeed()}${slimCal}</div>
    ${table('Recent enquiries', ['CLIENT','JOB','STATUS','DATE','VALUE'], [
      row(who(0,'JW','James Whitfield','Sunningdale') + '<div class="jb">Extension</div><div><span class="pill new">New</span></div><div class="dt">Today · 09:12</div><div class="vl">£48,500</div>'),
-     row(who(1,'PS','Priya Shah','Ascot') + '<div class="jb">Loft</div><div><span class="pill bok">Visit booked</span></div><div class="dt">Today · 08:58</div><div class="vl">£36,200</div>'),
+     row(who(1,'EP','Eleanor Price','Ascot') + '<div class="jb">Loft</div><div><span class="pill bok">Visit booked</span></div><div class="dt">Today · 08:58</div><div class="vl">£36,200</div>'),
      row(who(2,'TO',"Tom O'Connor",'Weybridge') + '<div class="jb">Renovation</div><div><span class="pill rep">Replied</span></div><div class="dt">Today · 08:47</div><div class="vl">£92,750</div>'),
      row(who(3,'EB','Emma Brown','Guildford') + '<div class="jb">Garden room</div><div><span class="pill rep">Replied</span></div><div class="dt">Yesterday</div><div class="vl">£24,900</div>'),
      row(who(4,'DA','David Adeyemi','Cobham') + '<div class="jb">Kitchen ext.</div><div><span class="pill new">New</span></div><div class="dt">Yesterday</div><div class="vl">£41,300</div>')
@@ -426,23 +426,23 @@ const VIEWS = [
    <div class="listcard card">
      <div class="lhead"><span class="lt2">Enquiries</span><span class="lchip">23 new today</span></div>
      <div class="llist">
-       ${li(1,'PS','Priya Shah','Loft · Ascot','2m', mp('bok','BOOKED'), 1)}
+       ${li(1,'EP','Eleanor Price','Loft · Ascot','2m', mp('bok','BOOKED'), 1)}
        ${li(0,'JW','James Whitfield','Extension · Sunningdale','9m', mp('rep','REPLIED'), 0)}
        ${li(3,'EB','Emma Brown','Garden room · Guildford','26m', mp('rep','REPLIED'), 0)}
        ${li(4,'DA','David Adeyemi','Kitchen ext. · Cobham','1h', mp('new','NEW'), 0)}
-       ${li(2,'SK','Sana Khan','Extension · Woking','2h', mp('rep','REPLIED'), 0)}
+       ${li(2,'BH','Bethany Hughes','Extension · Woking','2h', mp('rep','REPLIED'), 0)}
        ${li(0,'ME','Mark Evans','Renovation · Windsor','3h', mp('new','NEW'), 0)}
      </div>
    </div>
    <div class="convcard card">
      <div class="chead2">
-       <div class="av3" style="background:${AV[1]}">PS</div>
-       <div><div class="cnm">Priya Shah</div><div class="csub">Loft conversion · Ascot · via website</div></div>
+       <div class="av3" style="background:${AV[1]}">EP</div>
+       <div><div class="cnm">Eleanor Price</div><div class="csub">Loft conversion · Ascot · via website</div></div>
        <span class="pill bok" style="margin-left:auto">Visit booked</span>
      </div>
      <div class="cbody">
        ${bub('cust','Hi, we want to turn our loft into a bedroom with an ensuite. Roughly what would that cost, and how soon could you start?','08:57', 0.05)}
-       ${bub('ai','Hi Priya, thanks for getting in touch. A loft conversion with ensuite usually comes in between £34k and £42k, depending on the structure. I can book a free site visit so we can measure up and quote exactly. Would Tuesday 9:30 suit you?','AI · replied in 31s', 0.22)}
+       ${bub('ai','Hi Eleanor, thanks for getting in touch. A loft conversion with ensuite usually comes in between £34k and £42k, depending on the structure. I can book a free site visit so we can measure up and quote exactly. Would Tuesday 9:30 suit you?','AI · replied in 31s', 0.22)}
        ${bub('cust','Tuesday 9:30 works for us. See you then.','09:02', 0.4)}
        ${bub('ai','You are booked in for Tuesday 9:30 ✓ Confirmation sent, and a reminder follows the day before.','09:02', 0.56)}
        <div class="brow ai"><div class="bub ai typebub"><span class="tdots"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></span></div></div>
@@ -494,7 +494,7 @@ const VIEWS = [
      <div class="tsub">4 appointments · booked by AI</div>
      <div class="tlist">
        ${trow2('9:30','James Whitfield','Extension · Sunningdale','<span class="pill bok">Confirmed</span>')}
-       ${trow2('11:00','Priya Shah','Loft · Ascot','<span class="pill bok">Confirmed</span>')}
+       ${trow2('11:00','Eleanor Price','Loft · Ascot','<span class="pill bok">Confirmed</span>')}
        ${trow2('14:15','Emma Brown','Garden room · Guildford','<span class="pill pen">Pending</span>')}
        ${trow2('16:00',"Tom O'Connor",'Renovation · Weybridge','<span class="pill bok">Confirmed</span>')}
      </div>

@@ -341,7 +341,7 @@ const who = (i, ini, nm, area) => `<div class="who"><div class="av2" style="back
 const table = (title, cols, rows, p) => `<div class="tablecard card${p ? ' p' : ''}"><div class="thead"><div class="tt">${title}</div><div class="tctrl"><span>⌕ Search</span><b>Filter ▾</b></div></div><div class="tcols">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${rows.join('')}</div>`;
 const row = (cells) => `<div class="trow">${cells}</div>`;
 const aifeed = () => `<div class="aicard card"><div class="st">AI Replies <span class="live2"><i class="livedot2"></i>LIVE</span></div>
-  <div class="airow"><div class="ail1"><span class="ain">Priya Shah</span><span class="ait2">✓ VISIT BOOKED</span></div><div class="aim">“Thursday 11:00 works, you are booked in.” <span>· 4m ago</span></div></div>
+  <div class="airow"><div class="ail1"><span class="ain">Amelia Foster</span><span class="ait2">✓ VISIT BOOKED</span></div><div class="aim">“Thursday 11:00 works, you are booked in.” <span>· 4m ago</span></div></div>
   <div class="airow"><div class="ail1"><span class="ain">Freddie Holt</span><span class="ait2">✓ REPLIED IN 31s</span></div><div class="aim">“Friday afternoon suits us, thanks.” <span>· 11m ago</span></div></div>
   <div class="aitype"><span class="tdots"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></span>AI is replying to a new enquiry…</div></div>`;
 const slimCal = `<div class="slimcard card"><div class="sic">${svg(P.cal)}</div><div><div class="st1">Next visit — Shah, renovation survey</div><div class="st2">Today · 11:00 AM · Bathwick</div></div></div>`;
@@ -393,7 +393,7 @@ const VIEWS = [
  <div class="bgrid">
    ${table('Recent enquiries', ['CLIENT','JOB','STATUS','DATE','VALUE'], [
      row(who(0,'DW','Daniel Whitfield','Wellow') + '<div class="jb">Extension</div><div><span class="pill new">New</span></div><div class="dt">Today · 10:12</div><div class="vl">£64,500</div>'),
-     row(who(1,'PS','Priya Shah','Bathwick') + '<div class="jb">Renovation</div><div><span class="pill bok">Visit booked</span></div><div class="dt">Today · 09:47</div><div class="vl">£96,200</div>'),
+     row(who(1,'AF','Amelia Foster','Bathwick') + '<div class="jb">Renovation</div><div><span class="pill bok">Visit booked</span></div><div class="dt">Today · 09:47</div><div class="vl">£96,200</div>'),
      row(who(2,'SM','Sophie Marlow','Combe Down') + '<div class="jb">Loft</div><div><span class="pill rep">Replied</span></div><div class="dt">Today · 09:15</div><div class="vl">£41,300</div>'),
      row(who(3,'BA','Ben Adeyemi','Larkhall') + '<div class="jb">Garden room</div><div><span class="pill new">New</span></div><div class="dt">Yesterday</div><div class="vl">£29,750</div>')
    ])}
@@ -412,7 +412,7 @@ const VIEWS = [
      kcard('The Hendersons','Extension · Bathford','£49,850', kp('line','VIEWED'), 0.27) +
      kcard('Tom Ellery','Loft · Twerton','£43,100', kp('sage','SENT'), 0.36))}
    ${kcol('Booked', 4, '£220,600',
-     kcard('Priya Shah','Renovation · Bathwick','£96,200', kp('fill','STARTS 22 JUN'), 0.07) +
+     kcard('Amelia Foster','Renovation · Bathwick','£96,200', kp('fill','STARTS 22 JUN'), 0.07) +
      kcard('Ben Adeyemi','Garden room · Larkhall','£29,750', kp('line','DEPOSIT PAID'), 0.16) +
      kcard('Jack Rennie','Extension · Odd Down','£58,400', kp('fill','STARTS 29 JUN'), 0.25) +
      kcard('Olivia Fenn','Kitchen · Combe Down','£36,250', kp('line','DEPOSIT PAID'), 0.34))}
@@ -440,7 +440,7 @@ const VIEWS = [
    </div>
  </div>
  ${table('Latest invoices', ['INVOICE','CLIENT','STATUS','DATE','AMOUNT'], [
-   row('<div class="inv">INV-2041</div>' + who(1,'PS','Priya Shah','Bathwick') + '<div><span class="pill bok">Paid</span></div><div class="dt">28 Jun</div><div class="vl">£18,500</div>'),
+   row('<div class="inv">INV-2041</div>' + who(1,'AF','Amelia Foster','Bathwick') + '<div><span class="pill bok">Paid</span></div><div class="dt">28 Jun</div><div class="vl">£18,500</div>'),
    row('<div class="inv">INV-2040</div>' + who(3,'BA','Ben Adeyemi','Larkhall') + '<div><span class="pill bok">Paid</span></div><div class="dt">26 Jun</div><div class="vl">£7,400</div>'),
    row('<div class="inv">INV-2039</div>' + who(2,'GL','Grace Lindley','Widcombe') + '<div><span class="flipwrap"><span class="pill rep flipA">Sent</span><span class="pill bok flipB">Paid</span></span></div><div class="dt">24 Jun</div><div class="vl">£21,750</div>'),
    row('<div class="inv">INV-2038</div>' + who(4,'JR','Jack Rennie','Odd Down') + '<div><span class="pill rep">Sent</span></div><div class="dt">21 Jun</div><div class="vl">£12,300</div>'),
@@ -451,7 +451,7 @@ const VIEWS = [
    <div class="listcard card">
      <div class="lhead"><span class="lt2">Clients</span><span class="lchip">86 active</span></div>
      <div class="llist">
-       ${li(1,'PS','Priya Shah','Bathwick · 3 jobs · £148,200', mp('bok','ACTIVE'), 1)}
+       ${li(1,'AF','Amelia Foster','Bathwick · 3 jobs · £148,200', mp('bok','ACTIVE'), 1)}
        ${li(0,'DW','Daniel Whitfield','Wellow · 2 jobs · £91,300', mp('bok','ACTIVE'), 0)}
        ${li(2,'GL','Grace Lindley','Widcombe · 4 jobs · £203,450', mp('gold','REPEAT'), 0)}
        ${li(3,'BA','Ben Adeyemi','Larkhall · 1 job · £29,750', mp('new','NEW'), 0)}
@@ -461,8 +461,8 @@ const VIEWS = [
    </div>
    <div class="detailcard card">
      <div class="dh">
-       <div class="av3" style="background:${AV[1]};width:38px;height:38px;flex:0 0 38px;font-size:13px">PS</div>
-       <div><div class="dn2">Priya Shah</div><div class="ds2">Bathwick · client since 2023 · 3 jobs with Ashcombe</div></div>
+       <div class="av3" style="background:${AV[1]};width:38px;height:38px;flex:0 0 38px;font-size:13px">AF</div>
+       <div><div class="dn2">Amelia Foster</div><div class="ds2">Bathwick · client since 2023 · 3 jobs with Ashcombe</div></div>
        <span class="pill bok" style="margin-left:auto">Active</span>
      </div>
      <div class="dstats">
@@ -475,7 +475,7 @@ const VIEWS = [
        <div class="hrow2"><div class="hn">Kitchen refit<span>Bathwick · completed March</span></div><span class="pill bok">Paid</span><div class="hv2">£34,800</div></div>
        <div class="hrow2"><div class="hn">Garden studio<span>Bathwick · completed 2024</span></div><span class="pill bok">Paid</span><div class="hv2">£17,200</div></div>
      </div>
-     <div class="ainote"><i></i><div><b>AI note</b> — a review request went out after the kitchen refit. Priya replied with five stars and two referrals.</div></div>
+     <div class="ainote"><i></i><div><b>AI note</b> — a review request went out after the kitchen refit. Amelia replied with five stars and two referrals.</div></div>
    </div>
  </div>`
 ];
