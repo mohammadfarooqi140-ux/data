@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Glassy Admin Panel — V2</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1920px; overflow:hidden; background:#000; }
+  body {
+    font-family:'Jost','Liberation Sans',sans-serif;
+    color:#ffffff;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ---------- TITLE ZONE (black) ---------- */
+  .title-zone { padding-top:104px; text-align:center; }
+  .title-zone .name { font-size:96px; font-weight:600; letter-spacing:1px; color:#ffffff; line-height:1.05; }
+  .title-zone .ver  { font-size:96px; font-weight:700; color:#b79cff; line-height:1.1; }
+  /* ---------- MIDDLE ZONE — dark stage, vivid colour behind the glass ---------- */
+  .stage {
+    position:relative; margin-top:60px; height:694px; width:1080px;
+    background:radial-gradient(1200px 720px at 50% 38%, #180f30, #060409 78%);
+    overflow:hidden;
+  }
+  .blob { position:absolute; border-radius:50%; filter:blur(70px); }
+  .blob.b1 { width:560px; height:560px; background:#22d3ee; left:-120px; top:-170px; opacity:.55; }
+  .blob.b2 { width:580px; height:580px; background:#7c5cff; right:-150px; top:30px; opacity:.62; }
+  .blob.b3 { width:470px; height:470px; background:#f472b6; left:320px; bottom:-250px; opacity:.5; }
+  .blob.b4 { width:340px; height:340px; background:#fbbf24; right:150px; bottom:-190px; opacity:.4; }
+  .blob.b5 { width:300px; height:300px; background:#38bdf8; left:40px; bottom:-140px; opacity:.38; }
+  /* dashboard window — PURE GLASS: no colour of its own, colour shines through */
+  .dash {
+    position:absolute; left:63px; top:54px; width:954px; height:586px;
+    border-radius:34px;
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.22);
+    box-shadow:0 40px 90px rgba(2,0,12,.55), inset 0 1px 0 rgba(255,255,255,.22);
+    backdrop-filter:blur(26px) saturate(165%);
+    overflow:hidden;
+    display:flex;
+  }
+  /* ---------- SIDEBAR ---------- */
+  .side {
+    width:172px; flex:0 0 172px; height:100%;
+    background:rgba(255,255,255,.045);
+    border-right:1px solid rgba(255,255,255,.12);
+    display:flex; flex-direction:column; padding:20px 14px 16px;
+  }
+  .logo { display:flex; align-items:center; gap:9px; padding:0 6px; }
+  .logo .lg {
+    width:30px; height:30px; border-radius:9px; flex:0 0 30px;
+    background:linear-gradient(145deg,#22d3ee,#7c5cff);
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:700; color:#fff;
+    box-shadow:0 6px 14px rgba(124,92,255,.45);
+  }
+  .logo .ln { font-size:14.5px; font-weight:600; color:#fff; line-height:1.1; }
+  .logo .ln span { display:block; font-size:10px; font-weight:500; color:rgba(255,255,255,.5); letter-spacing:.6px; }
+  .nav { margin-top:26px; display:flex; flex-direction:column; gap:5px; }
+  .nitem {
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:11px;
+    font-size:13.5px; font-weight:500; color:rgba(255,255,255,.62);
+    border:1px solid transparent;
+  }
+  .nitem svg { width:16px; height:16px; flex:0 0 16px; }
+  .nitem .bdg { margin-left:auto; font-size:10px; font-weight:700; background:#f472b6; color:#fff; border-radius:999px; padding:1px 6px; }
+  .nitem.on {
+    background:linear-gradient(120deg, rgba(255,255,255,.20), rgba(255,255,255,.07));
+    border-color:rgba(255,255,255,.32); color:#fff;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .side .sp { flex:1; }
+  .syscard {
+    border-radius:14px; padding:10px 11px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.14);
+  }
+  .syscard .at { font-size:11.5px; font-weight:600; color:#eafff3; display:flex; align-items:center; gap:6px; }
+  .syscard .at i { width:6px; height:6px; border-radius:50%; background:#34f5a2; display:block; }
+  .syscard .am { font-size:10.5px; color:rgba(255,255,255,.6); line-height:1.35; margin-top:3px; }
+  .userchip { display:flex; align-items:center; gap:9px; margin-top:12px; padding:0 4px; }
+  .userchip .un { font-size:12px; font-weight:600; color:#fff; line-height:1.15; }
+  .userchip .un span { display:block; font-size:10px; color:rgba(255,255,255,.45); font-weight:400; }
+  /* ---------- MAIN ---------- */
+  .main2 { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .topbar {
+    flex:0 0 56px; display:flex; align-items:center; gap:14px; padding:0 22px;
+    border-bottom:1px solid rgba(255,255,255,.11);
+  }
+  .search {
+    flex:1; max-width:340px; height:34px; border-radius:999px;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
+    display:flex; align-items:center; gap:8px; padding:0 14px;
+    font-size:12.5px; color:rgba(255,255,255,.45);
+  }
+  .search svg { width:14px; height:14px; }
+  .topbar .tbtn {
+    margin-left:auto; font-size:12.5px; font-weight:600; color:#fff;
+    background:linear-gradient(120deg,#7c5cff,#d946ef); border-radius:999px; padding:8px 15px;
+    box-shadow:0 8px 18px rgba(160,80,255,.4); white-space:nowrap;
+  }
+  .topbar .tav { margin-left:2px; }
+  .views { position:relative; flex:1; min-height:0; }
+  .view { position:absolute; inset:0; padding:18px 22px 16px; display:flex; flex-direction:column; gap:13px; opacity:0; }
+  .vhead { display:flex; align-items:baseline; justify-content:space-between; flex:0 0 auto; }
+  .vhead .vt { font-size:24px; font-weight:600; color:#fff; letter-spacing:.2px; }
+  .vhead .vt span { color:#7dd3fc; }
+  .vhead .vs { font-size:12px; color:rgba(255,255,255,.5); display:flex; align-items:center; gap:6px; }
+  .vhead .vs .livedot { width:7px; height:7px; border-radius:50%; background:#34f5a2; display:inline-block; }
+  .vhead .vs b { color:#7dd3fc; font-weight:600; }
+  .card {
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:20px;
+    box-shadow:0 12px 26px rgba(2,0,12,.28), inset 0 1px 0 rgba(255,255,255,.12);
+  }
+  .av { border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; color:#fff; flex:0 0 auto; }
+  /* ---------- stat cards ---------- */
+  .statrow { display:flex; gap:13px; flex:0 0 74px; }
+  .astat { flex:1; padding:11px 15px 9px; display:flex; flex-direction:column; overflow:hidden; }
+  .astat .lab { font-size:11.5px; color:rgba(255,255,255,.55); font-weight:500; display:flex; align-items:center; justify-content:space-between; }
+  .astat .tr { font-size:10px; font-weight:700; color:#6dffa8; background:rgba(52,245,162,.13); border:1px solid rgba(52,245,162,.3); padding:1px 6px; border-radius:999px; }
+  .astat .val { font-size:23px; font-weight:600; color:#fff; line-height:1.2; margin-top:1px; }
+  /* ---------- chart card ---------- */
+  .chartcard { flex:1; padding:13px 17px 8px; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
+  .chartcard .ct { font-size:14px; font-weight:600; color:#fff; display:flex; align-items:center; justify-content:space-between; }
+  .chartcard .ct .cup { font-size:11px; font-weight:700; color:#7dd3fc; background:rgba(56,189,248,.13); border:1px solid rgba(56,189,248,.3); padding:2px 8px; border-radius:999px; }
+  .xlabels { display:flex; justify-content:space-between; font-size:10.5px; color:rgba(255,255,255,.42); font-weight:500; padding:2px 2px 4px; }
+  /* ---------- activity strip ---------- */
+  .actstrip { flex:0 0 auto; display:flex; align-items:center; gap:18px; padding:10px 16px; border-radius:14px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); font-size:11.5px; color:rgba(255,255,255,.72); overflow:hidden; white-space:nowrap; }
+  .actstrip .ai2 { display:flex; align-items:center; gap:7px; }
+  .actstrip i { width:7px; height:7px; border-radius:50%; display:block; flex:0 0 7px; }
+  .actstrip b { color:#fff; font-weight:600; }
+  .actstrip .when { color:rgba(255,255,255,.4); }
+  /* ---------- tables ---------- */
+  .tblcard { flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0; padding:6px 0; }
+  .trow { display:grid; align-items:center; padding:10px 18px; border-bottom:1px solid rgba(255,255,255,.07); }
+  .trow:last-child { border-bottom:none; }
+  .trow.head { padding:7px 18px; font-size:10px; font-weight:700; letter-spacing:1.1px; color:rgba(255,255,255,.42); }
+  .ucols { grid-template-columns:1.7fr .8fr .8fr .7fr; }
+  .uinfo { display:flex; align-items:center; gap:11px; min-width:0; }
+  .uinfo .un2 { font-size:13.5px; font-weight:600; color:#fff; line-height:1.2; }
+  .uinfo .un2 span { display:block; font-size:11px; font-weight:400; color:rgba(255,255,255,.45); }
+  .joined { font-size:12px; color:rgba(255,255,255,.55); }
+  .pill { font-size:10px; font-weight:700; letter-spacing:.4px; padding:3px 9px; border-radius:999px; white-space:nowrap; justify-self:start; }
+  .pill.role { background:rgba(255,255,255,.08); color:rgba(255,255,255,.78); border:1px solid rgba(255,255,255,.16); }
+  .pill.act { background:rgba(52,245,162,.13); color:#6dffa8; border:1px solid rgba(52,245,162,.32); }
+  .pill.pen { background:rgba(251,191,36,.13); color:#ffd97a; border:1px solid rgba(251,191,36,.32); }
+  .pill.blk { background:rgba(251,113,133,.13); color:#ffa4b3; border:1px solid rgba(251,113,133,.32); }
+  .pill.ship { background:rgba(56,189,248,.13); color:#8fdcff; border:1px solid rgba(56,189,248,.32); }
+  /* ---------- orders ---------- */
+  .orow { display:flex; align-items:center; gap:12px; padding:11px 18px; border-bottom:1px solid rgba(255,255,255,.07); }
+  .orow:last-child { border-bottom:none; }
+  .orow .oid { font-size:13.5px; font-weight:700; color:#fff; width:64px; flex:0 0 64px; }
+  .orow .omid { flex:1; min-width:0; }
+  .orow .oc { font-size:13px; font-weight:600; color:#fff; line-height:1.25; }
+  .orow .op { font-size:11px; color:rgba(255,255,255,.48); }
+  .orow .oamt { font-size:14px; font-weight:700; color:#fff; width:58px; flex:0 0 58px; text-align:right; }
+  .orow .pill { width:92px; flex:0 0 92px; text-align:center; }
+  /* ---------- channel bars ---------- */
+  .chanrow { display:flex; gap:13px; flex:0 0 128px; }
+  .chancard { flex:1; padding:11px 16px 9px; display:flex; flex-direction:column; overflow:hidden; }
+  .chancard .ct { font-size:13px; font-weight:600; color:#fff; margin-bottom:7px; }
+  .brow { display:flex; align-items:center; gap:10px; margin-top:5px; }
+  .brow .bl { font-size:11px; font-weight:500; color:rgba(255,255,255,.6); width:64px; flex:0 0 64px; }
+  .brow .btrack { flex:1; height:9px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; }
+  .brow .bfill { height:100%; border-radius:999px; transform-origin:left center; }
+  .brow .bv { font-size:11px; font-weight:600; color:#fff; width:30px; flex:0 0 30px; text-align:right; }
+  .srcnote { width:238px; flex:0 0 238px; padding:11px 14px; display:flex; flex-direction:column; overflow:hidden; }
+  .srcnote .st4 { font-size:12.5px; font-weight:600; color:#fff; }
+  .srcnote .sm4 { font-size:11px; color:rgba(255,255,255,.58); line-height:1.45; margin-top:4px; }
+  .srcnote .sm4 b { color:#7dd3fc; }
+  .notetext { flex:0 0 auto; display:flex; align-items:center; gap:9px; padding:9px 14px; border-radius:14px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); font-size:12px; color:rgba(255,255,255,.72); }
+  .notetext i { width:7px; height:7px; border-radius:50%; background:#34f5a2; display:block; flex:0 0 7px; }
+  .notetext b { color:#fff; }
+
+  /* ---------- CODE ZONE (black, format unchanged) ---------- */
+  .codewin {
+    margin:56px 48px 0; height:596px; border-radius:24px; overflow:hidden;
+    background:#0b0e15; border:1px solid rgba(255,255,255,.11);
+    box-shadow:0 34px 80px rgba(0,0,0,.6);
+  }
+  .codebar {
+    height:64px; background:#11141d; display:flex; align-items:center; gap:9px;
+    padding:0 22px; border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .cdot { width:15px; height:15px; border-radius:50%; }
+  .tab {
+    margin-left:20px; background:#0b0e15; border:1px solid rgba(255,255,255,.08); border-bottom:none;
+    padding:9px 18px; border-radius:10px 10px 0 0; font-family:'Liberation Mono',monospace;
+    font-size:16.5px; color:#d7deeb; align-self:flex-end; height:44px; display:flex; align-items:center;
+  }
+  .tab i { color:#ff8a3d; font-style:normal; }
+  pre {
+    padding:30px 34px; font-family:'Liberation Mono','DejaVu Sans Mono',monospace;
+    font-size:23.5px; line-height:1.85; color:#a9b7d0; white-space:pre;
+  }
+  .k { color:#c792ea; } .s { color:#9ece6a; } .t { color:#7aa2f7; }
+  .f { color:#82aaff; } .p { color:#89ddff; } .n { color:#f78c6c; } .cm { color:#565f89; }
+</style>
+</head>
+<body>
+  <div class="title-zone">
+    <div class="name">Glassy Admin Panel</div>
+    <div class="ver">V2</div>
+  </div>
+
+  <div class="stage">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="blob b4"></div>
+    <div class="blob b5"></div>
+    <div class="dash">
+      <div class="side">
+        <div class="logo"><div class="lg">L</div><div class="ln">Lumina<span>ADMIN CONSOLE</span></div></div>
+        <div class="nav" id="nav"></div>
+        <div class="sp"></div>
+        <div class="syscard"><div class="at"><i class="livedot2"></i>All systems live</div><div class="am">Uptime 99.99% · 0 incidents today</div></div>
+        <div class="userchip"><div class="av" style="width:30px;height:30px;font-size:11px;background:linear-gradient(145deg,#22d3ee,#1f7f96)">AM</div><div class="un">Alex Morgan<span>Super Admin</span></div></div>
+      </div>
+      <div class="main2">
+        <div class="topbar">
+          <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg>Search users, orders, products…</div>
+          <span class="tbtn">+ Add user</span>
+          <div class="av tav" style="width:32px;height:32px;font-size:11px;background:linear-gradient(145deg,#22d3ee,#1f7f96)">AM</div>
+        </div>
+        <div class="views" id="views"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="codewin">
+    <div class="codebar">
+      <div class="cdot" style="background:#ff5f57"></div>
+      <div class="cdot" style="background:#febc2e"></div>
+      <div class="cdot" style="background:#28c840"></div>
+      <div class="tab">AdminPanel<i>.jsx</i></div>
+    </div>
+    <pre><code><span class="k">import</span> { useState } <span class="k">from</span> <span class="s">'react'</span>;
+<span class="k">import</span> { GlassSidebar } <span class="k">from</span> <span class="s">'./GlassSidebar'</span>;
+
+<span class="k">export const</span> <span class="f">AdminPanel</span> = () =&gt; {
+  <span class="k">const</span> [page, setPage] = <span class="f">useState</span>(<span class="s">'overview'</span>);
+
+  <span class="k">return</span> (
+    &lt;<span class="t">main</span> <span class="p">className</span>=<span class="s">"admin glass-stage"</span>&gt;
+      &lt;<span class="t">GlassSidebar</span> <span class="p">active</span>={page} <span class="p">onNavigate</span>={setPage} /&gt;
+      {page === <span class="s">'overview'</span> &amp;&amp; &lt;<span class="t">Overview</span> /&gt;}
+      {page === <span class="s">'users'</span> &amp;&amp; &lt;<span class="t">Users</span> /&gt;}
+      {page === <span class="s">'orders'</span> &amp;&amp; &lt;<span class="t">Orders</span> /&gt;}
+      {page === <span class="s">'analytics'</span> &amp;&amp; &lt;<span class="t">Analytics</span> /&gt;}
+    &lt;/<span class="t">main</span>&gt;
+  );
+};</code></pre>
+  </div>
+<script>
+/* ---------- icons ---------- */
+const P = {
+  grid:'<rect x="3" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.8"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M16 5.2a3.5 3.5 0 0 1 0 5.9M18.5 15.4c1 .8 1.7 2 2 4.6"/>',
+  bag:'<path d="M5 8h14l-1.1 11.2A2 2 0 0 1 15.9 21H8.1a2 2 0 0 1-2-1.8L5 8z"/><path d="M8.5 10.5V6.5a3.5 3.5 0 0 1 7 0v4"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-8M21 20H3"/>',
+  box:'<path d="M12 3l8.5 4.7v9L12 21l-8.5-4.3v-9L12 3z"/><path d="M3.5 7.7L12 12l8.5-4.3M12 12v9"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1"/>'
+};
+const svg = (paths) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+/* ---------- sidebar (static chrome; only its active state changes) ---------- */
+const NAV = [['grid','Overview',''],['users','Users',''],['bag','Orders','8'],['chart','Analytics',''],['box','Products',''],['gear','Settings','']];
+document.getElementById('nav').innerHTML =
+  NAV.map((n,i)=>`<div class="nitem" data-ic="${i}">${svg(P[n[0]])}${n[1]}${n[2] ? `<span class="bdg">${n[2]}</span>` : ''}</div>`).join('');
+/* ---------- builders ---------- */
+const AV = ['linear-gradient(145deg,#8b6cff,#5a3ee0)','linear-gradient(145deg,#37c8d9,#1f7f96)','linear-gradient(145deg,#e0568b,#a02c58)','linear-gradient(145deg,#f0b454,#b97e22)','linear-gradient(145deg,#6ee7a0,#2f9e5f)'];
+const av = (i, ini, sz) => `<div class="av" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*0.36)}px;background:${AV[i % 5]}">${ini}</div>`;
+const astat = (lab, val, tr) => `<div class="astat card"><div class="lab">${lab}<span class="tr">▲ ${tr}</span></div><div class="val">${val}</div></div>`;
+const urow = (i, ini, nm, em, role, st, stc, joined, fade) => `<div class="trow ucols" data-fade="${fade}"><div class="uinfo">${av(i, ini, 32)}<div class="un2">${nm}<span>${em}</span></div></div><span class="pill role">${role}</span><span class="pill ${stc}">${st}</span><span class="joined">${joined}</span></div>`;
+const orow = (id, cust, prod, amt, st, stc, fade) => `<div class="orow" data-fade="${fade}"><span class="oid">${id}</span><div class="omid"><div class="oc">${cust}</div><div class="op">${prod}</div></div><span class="oamt">${amt}</span><span class="pill ${stc}">${st}</span></div>`;
+const brow = (lab, pct, color, val) => `<div class="brow"><span class="bl">${lab}</span><div class="btrack"><div class="bfill" data-bar style="width:${pct}%;background:${color}"></div></div><span class="bv">${val}</span></div>`;
+const VIEWS = [
+/* ---------- 1 · OVERVIEW — stats + revenue chart ---------- */
+`<div class="vhead"><div class="vt">Overview <span>· platform at a glance</span></div><div class="vs"><span class="livedot"></span><b>342</b> users online now</div></div>
+ <div class="statrow">
+   ${astat('Total Users','<span data-count="48290" data-fmt="1">0</span>','12.5%')}
+   ${astat('Revenue','$<span data-count="86400" data-fmt="1">0</span>','8.2%')}
+   ${astat('Orders','<span data-count="12847" data-fmt="1">0</span>','3.9%')}
+   ${astat('Active Now','<span data-count="342">0</span>','18.6%')}
+ </div>
+ <div class="chartcard card">
+   <div class="ct">Revenue — this week <span class="cup">▲ 18.2% vs last week</span></div>
+   <svg width="100%" height="172" viewBox="0 0 700 172" preserveAspectRatio="none" style="margin-top:8px">
+     <defs>
+       <linearGradient id="afill" x1="0" y1="0" x2="0" y2="1">
+         <stop offset="0" stop-color="#22d3ee" stop-opacity=".38"/>
+         <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+       </linearGradient>
+     </defs>
+     <path d="M0,140 L116,112 L233,122 L350,80 L466,92 L583,44 L700,26 L700,172 L0,172 Z" fill="url(#afill)"/>
+     <path d="M0,148 L116,138 L233,142 L350,118 L466,124 L583,96 L700,102" fill="none" stroke="rgba(255,255,255,.32)" stroke-width="2" stroke-dasharray="5 6"/>
+     <path class="aline" data-len="760" d="M0,140 L116,112 L233,122 L350,80 L466,92 L583,44 L700,26" fill="none" stroke="#22d3ee" stroke-width="3" stroke-linecap="round" stroke-dasharray="760" stroke-dashoffset="760"/>
+     <circle cx="583" cy="44" r="5" fill="#f472b6" stroke="#0a0616" stroke-width="2"/>
+     <circle cx="700" cy="26" r="5" fill="#fbbf24" stroke="#0a0616" stroke-width="2"/>
+   </svg>
+   <div class="xlabels"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></div>
+ </div>
+ <div class="actstrip" data-fade="0.4">
+   <span class="ai2"><i style="background:#34f5a2"></i><span><b>New signup</b> · emma@studio.co</span><span class="when">2m ago</span></span>
+   <span class="ai2"><i style="background:#f472b6"></i><span><b>Order #9241</b> paid · $240</span><span class="when">5m ago</span></span>
+   <span class="ai2"><i style="background:#fbbf24"></i><span><b>Invite sent</b> · design team</span><span class="when">9m ago</span></span>
+ </div>`,
+/* ---------- 2 · USERS — table with status pills ---------- */
+`<div class="vhead"><div class="vt">Users <span>· 48,290 accounts</span></div><div class="vs"><b>12</b> new signups today · 3 invites pending</div></div>
+ <div class="tblcard card">
+   <div class="trow head ucols"><span>USER</span><span>ROLE</span><span>STATUS</span><span>JOINED</span></div>
+   ${urow(1,'EW','Emma Wilson','emma@wilson.co','Owner','Active','act','Mar 2023',0.05)}
+   ${urow(0,'LC','Liam Carter','liam@carter.io','Admin','Active','act','Jun 2023',0.14)}
+   ${urow(2,'SR','Sofia Reyes','sofia@reyes.design','Editor','Pending','pen','2 days ago',0.23)}
+   ${urow(3,'NB','Noah Bennett','noah@bennett.co','Member','Blocked','blk','Aug 2024',0.32)}
+   ${urow(4,'AT','Ava Thompson','ava@thompson.app','Support','Active','act','Jan 2025',0.41)}
+ </div>
+ <div class="notetext" data-fade="0.48"><i></i><div><b>Roles &amp; permissions</b> — Owners see billing, Admins manage users, Support is read-only.</div></div>`,
+/* ---------- 3 · ORDERS — list with statuses ---------- */
+`<div class="vhead"><div class="vt">Orders <span>· today</span></div><div class="vs"><b>312</b> orders · $12,480 revenue today</div></div>
+ <div class="statrow">
+   ${astat("Today's Orders",'<span data-count="312">0</span>','6.1%')}
+   ${astat('Awaiting Fulfilment','<span data-count="18">0</span>','2.4%')}
+   ${astat('Revenue Today','$<span data-count="12480" data-fmt="1">0</span>','11.3%')}
+   ${astat('Refunds','<span data-count="2">0</span>','0.5%')}
+ </div>
+ <div class="tblcard card">
+   ${orow('#9241','Emma Wilson','Pro Plan · Yearly','$240','Completed','act',0.05)}
+   ${orow('#9240','Liam Carter','Team Workspace × 3','$540','Shipped','ship',0.14)}
+   ${orow('#9239','Sofia Reyes','Starter Plan','$29','Processing','pen',0.23)}
+   ${orow('#9238','Noah Bennett','Add-on · Storage 1TB','$12','Refunded','blk',0.32)}
+   ${orow('#9237','Ava Thompson','Pro Plan · Monthly','$24','Completed','act',0.41)}
+ </div>`,
+/* ---------- 4 · ANALYTICS — big chart page ---------- */
+`<div class="vhead"><div class="vt">Analytics <span>· last 30 days</span></div><div class="vs">Updated <b>just now</b> · all workspaces</div></div>
+ <div class="statrow">
+   ${astat('Sessions','<span data-count="128430" data-fmt="1">0</span>','9.4%')}
+   ${astat('Conversion','<span data-count="48" data-dec="1">0</span>%','0.6%')}
+   ${astat('Avg. Session','6m 12s','4.1%')}
+   ${astat('Bounce Rate','<span data-count="28">0</span>%','1.8%')}
+ </div>
+ <div class="chartcard card">
+   <div class="ct">Sessions — last 30 days <span class="cup">▲ 22% vs previous</span></div>
+   <svg width="100%" height="172" viewBox="0 0 700 172" preserveAspectRatio="none" style="margin-top:8px">
+     <defs>
+       <linearGradient id="afill2" x1="0" y1="0" x2="0" y2="1">
+         <stop offset="0" stop-color="#a78bfa" stop-opacity=".40"/>
+         <stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+       </linearGradient>
+     </defs>
+     <path d="M0,146 L116,128 L233,134 L350,96 L466,104 L583,58 L700,34 L700,172 L0,172 Z" fill="url(#afill2)"/>
+     <path d="M0,154 L116,146 L233,150 L350,132 L466,138 L583,112 L700,118" fill="none" stroke="rgba(255,255,255,.32)" stroke-width="2" stroke-dasharray="5 6"/>
+     <path class="aline" data-len="760" d="M0,146 L116,128 L233,134 L350,96 L466,104 L583,58 L700,34" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-dasharray="760" stroke-dashoffset="760"/>
+     <circle cx="583" cy="58" r="5" fill="#22d3ee" stroke="#0a0616" stroke-width="2"/>
+     <circle cx="700" cy="34" r="5" fill="#f472b6" stroke="#0a0616" stroke-width="2"/>
+   </svg>
+   <div class="xlabels"><span>WEEK 1</span><span>WEEK 2</span><span>WEEK 3</span><span>WEEK 4</span></div>
+ </div>
+ <div class="chanrow">
+   <div class="chancard card">
+     <div class="ct">Traffic by channel</div>
+     ${brow('Direct', 82, 'linear-gradient(90deg,#22d3ee,#0e9db8)', '42k')}
+     ${brow('Organic', 64, 'linear-gradient(90deg,#8b6cff,#5a3ee0)', '33k')}
+     ${brow('Social', 47, 'linear-gradient(90deg,#f472b6,#c2337f)', '24k')}
+     ${brow('Referral', 29, 'linear-gradient(90deg,#fbbf24,#d18f16)', '15k')}
+   </div>
+   <div class="srcnote card">
+     <div class="st4">Where growth came from</div>
+     <div class="sm4">Direct traffic converts best — <b>6.1%</b> reach checkout. Social is up <b>+18%</b> this month.</div>
+   </div>
+ </div>`
+];
+document.getElementById('views').innerHTML = VIEWS.map((v,i)=>`<div class="view" id="v${i}">${v}</div>`).join('');
+
+/* ---------- motion (series engine, unchanged) ----------
+   Chrome (sidebar, topbar, window, code pane) is never transformed.
+   A page switch = sidebar active state flips at the slot boundary, then the
+   content area crossfades IN PLACE over 200ms. No translations anywhere.
+   Inside a view, only in-place micro-animation: counters, bars growing from
+   their baseline, chart line drawing, staggered fades. */
+function renderAt(t) {
+  const DUR = 1.5, XF = 0.2;
+  const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+  const easeOut = x=>1-Math.pow(1-x,3);
+  const smooth = x=>{ x = clamp(x,0,1); return x*x*(3-2*x); };
+  const slotF = t / DUR;
+  const slot = Math.floor(slotF) % 4;
+  const lt = t - Math.floor(slotF) * DUR;
+  const prev = (slot + 3) % 4;
+
+  document.querySelectorAll('.view').forEach((el,i)=>{
+    let op = 0, age = 0;
+    if (i === slot)      { op = lt < XF ? smooth(lt / XF) : 1; age = lt; }
+    else if (i === prev) { op = lt < XF ? 1 - smooth(lt / XF) : 0; age = DUR + lt; }
+    el.style.opacity = op.toFixed(3);
+    el.style.zIndex = i === slot ? 2 : 1;
+    el.style.visibility = op <= 0 ? 'hidden' : 'visible';
+    if (op <= 0) return;
+    const p = easeOut(clamp(age / 0.9, 0, 1));
+    el.querySelectorAll('[data-count]').forEach(c=>{
+      const raw = parseFloat(c.dataset.count) * p;
+      const v = Math.round(raw);
+      c.textContent = c.dataset.dec ? (raw / 10).toFixed(1) : (c.dataset.fmt ? v.toLocaleString('en-GB') : v);
+    });
+    el.querySelectorAll('[data-bar]').forEach((b,idx)=>{
+      const bp = easeOut(clamp((age - 0.08 - idx * 0.06) / 0.7, 0, 1));
+      b.style.transform = `scaleX(${Math.max(0.02, bp).toFixed(3)})`;
+    });
+    el.querySelectorAll('.aline').forEach(s=>{
+      const len = parseFloat(s.dataset.len);
+      const sp = easeOut(clamp((age - 0.1) / 0.8, 0, 1));
+      s.style.strokeDashoffset = (len * (1 - sp)).toFixed(1);
+    });
+    el.querySelectorAll('[data-fade]').forEach(f=>{
+      const fp = easeOut(clamp((age - parseFloat(f.dataset.fade)) / 0.45, 0, 1));
+      f.style.opacity = fp.toFixed(3);
+    });
+  });
+
+  /* sidebar active state — flips at the boundary */
+  document.querySelectorAll('.nitem[data-ic]').forEach(ic=>{
+    ic.classList.toggle('on', parseInt(ic.dataset.ic) === slot);
+  });
+  /* live dots — continuous, subtle, like a real app */
+  const pulse = 0.55 + 0.45 * Math.sin(t * 2.4);
+  document.querySelectorAll('.livedot, .livedot2').forEach(d=>{ d.style.opacity = pulse.toFixed(3); });
+}
+window.renderAt = renderAt;
+renderAt(parseFloat(new URLSearchParams(location.search).get('t') || '0'));
+</script>
+</body>
+</html>
