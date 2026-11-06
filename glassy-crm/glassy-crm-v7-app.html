@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Glassy CRM — V7</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1920px; overflow:hidden; background:#000; }
+  body {
+    font-family:'Jost','Liberation Sans',sans-serif;
+    color:#2f352c;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ---------- TITLE ZONE ---------- */
+  .title-zone { padding-top:104px; text-align:center; }
+  .title-zone .name { font-size:96px; font-weight:600; letter-spacing:1px; color:#ffffff; line-height:1.05; }
+  .title-zone .ver  { font-size:96px; font-weight:700; color:#a9c795; line-height:1.1; }
+  /* ---------- MIDDLE ZONE — pearl / cream stage ---------- */
+  .stage {
+    position:relative; margin-top:60px; height:694px; width:1080px;
+    background:linear-gradient(160deg,#f4f0e3,#e8e2cf 70%); overflow:hidden;
+  }
+  .blob { position:absolute; border-radius:50%; filter:blur(70px); }
+  .blob.b1 { width:560px; height:560px; background:#9db98f; left:-120px; top:-160px; opacity:.55; }
+  .blob.b2 { width:520px; height:520px; background:#e3d29b; right:-140px; top:60px; opacity:.5; }
+  .blob.b3 { width:420px; height:420px; background:#d9bda6; left:330px; bottom:-240px; opacity:.42; }
+  /* dashboard window — 954x586, frosted pearl glass */
+  .dash {
+    position:absolute; left:88px; top:54px; width:954px; height:586px;
+    border-radius:34px;
+    background:linear-gradient(155deg, rgba(255,255,255,.66), rgba(250,247,238,.56) 55%, rgba(255,255,255,.52));
+    border:1px solid rgba(94,108,80,.22);
+    box-shadow:0 40px 90px rgba(101,112,84,.30), inset 0 1px 0 rgba(255,255,255,.75);
+    backdrop-filter:blur(22px) saturate(130%);
+    overflow:hidden;
+  }
+  /* detached floating icon rail — slimmer than V4/V5: 34px pill */
+  .rail {
+    position:absolute; left:42px; top:118px; width:34px; height:330px;
+    border-radius:17px;
+    background:linear-gradient(160deg, rgba(255,255,255,.55), rgba(248,245,236,.45));
+    border:1px solid rgba(94,108,80,.2);
+    box-shadow:0 24px 50px rgba(101,112,84,.25), inset 0 1px 0 rgba(255,255,255,.7);
+    backdrop-filter:blur(18px) saturate(130%);
+    display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:11px;
+  }
+  .ric {
+    width:26px; height:26px; border-radius:50%; position:relative; flex:0 0 26px;
+    display:flex; align-items:center; justify-content:center;
+    color:rgba(47,53,44,.45);
+  }
+  .ric svg { width:14px; height:14px; }
+  .ric.on { background:#557c4c; color:#ffffff; box-shadow:0 4px 10px rgba(85,124,76,.4); }
+  .ric .dot { position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; background:#557c4c; opacity:0; }
+  .rail .rsep { width:14px; height:1px; background:rgba(94,108,80,.25); margin:2px 0; }
+  /* bottom tab dock — floating pill over window bottom edge, static */
+  .dock {
+    position:absolute; left:351px; top:621px; width:430px; height:38px;
+    border-radius:999px;
+    background:rgba(255,255,255,.55); border:1px solid rgba(94,108,80,.22);
+    box-shadow:0 18px 40px rgba(101,112,84,.28), inset 0 1px 0 rgba(255,255,255,.7);
+    backdrop-filter:blur(14px);
+    display:flex; align-items:center; justify-content:center; gap:22px;
+    font-size:13px; font-weight:500; color:rgba(47,53,44,.75); letter-spacing:.3px;
+  }
+  .dock .play {
+    width:24px; height:24px; border-radius:50%; background:#557c4c; color:#ffffff;
+    display:flex; align-items:center; justify-content:center; margin-left:2px;
+  }
+  .dock .play svg { width:11px; height:11px; margin-left:1.5px; }
+  /* ---------- DASH INTERIOR ---------- */
+  .main2 { position:absolute; inset:0; padding:24px 24px 12px; display:flex; flex-direction:column; }
+  .dhead { flex:0 0 auto; margin-bottom:13px; }
+  .dhead .greet { font-size:29px; font-weight:600; letter-spacing:.2px; color:#23281f; line-height:1.15; }
+  .dhead .gsub { font-size:13px; color:rgba(47,53,44,.55); margin-top:3px; display:flex; align-items:center; gap:6px; }
+  .dhead .gsub .livedot { width:7px; height:7px; border-radius:50%; background:#6f9a6a; display:inline-block; }
+  .dhead .gsub .teal { color:#4e7a44; font-weight:600; }
+  .views { position:relative; flex:1; min-height:0; }
+  .view { position:absolute; inset:0; display:flex; flex-direction:column; gap:14px; opacity:0; }
+  .card {
+    background:rgba(255,255,255,.52);
+    border:1px solid rgba(94,108,80,.16);
+    border-radius:22px;
+    box-shadow:0 10px 24px rgba(101,112,84,.13), inset 0 1px 0 rgba(255,255,255,.65);
+  }
+  /* ---------- HOME — donut-led top row: 396 / flex / 214 ---------- */
+  .tgrid { display:flex; gap:14px; height:232px; flex:0 0 232px; }
+  .donutcard { width:396px; flex:0 0 396px; padding:15px 18px 12px; display:flex; flex-direction:column; overflow:hidden; }
+  .donutcard .ct { font-size:14.5px; font-weight:600; color:#23281f; display:flex; align-items:center; justify-content:space-between; }
+  .donutcard .ct .csub2 { font-size:11px; color:rgba(47,53,44,.5); font-weight:500; }
+  .donutwrap { flex:1; display:flex; align-items:center; gap:16px; min-height:0; }
+  .donuthold { position:relative; width:150px; height:150px; flex:0 0 150px; }
+  .donutnum { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .donutnum .dn { font-size:31px; font-weight:600; color:#23281f; line-height:1; }
+  .donutnum .dl2 { font-size:10.5px; color:rgba(47,53,44,.5); margin-top:3px; letter-spacing:.4px; }
+  .dlegend { display:flex; flex-direction:column; gap:9px; font-size:12.5px; color:rgba(47,53,44,.7); flex:1; }
+  .dlegend .dl { display:flex; align-items:center; gap:7px; white-space:nowrap; }
+  .dlegend .dl i { width:8px; height:8px; border-radius:50%; display:block; flex:0 0 8px; }
+  .dlegend .dl b { margin-left:auto; font-weight:600; color:#23281f; padding-left:12px; }
+  .primary { flex:1; padding:15px 18px 12px; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+  .primary .plab { font-size:12.5px; color:rgba(47,53,44,.55); font-weight:500; display:flex; align-items:center; justify-content:space-between; white-space:nowrap; }
+  .primary .plab .live2 { font-size:10px; color:#4e7a44; font-weight:700; letter-spacing:.6px; display:flex; align-items:center; gap:5px; flex:0 0 auto; }
+  .primary .plab .live2 i { width:7px; height:7px; border-radius:50%; background:#6f9a6a; display:block; }
+  .primary .pval { font-size:34px; font-weight:600; letter-spacing:.2px; margin-top:4px; color:#23281f; line-height:1.1; }
+  .primary .pdelta { font-size:12.5px; color:#4e7a44; font-weight:500; margin-top:2px; }
+  .primary .pdelta span { color:rgba(47,53,44,.45); font-weight:400; }
+  .pctrls { display:flex; gap:7px; margin-top:9px; }
+  .pbtn { font-size:12px; font-weight:600; padding:6px 11px; border-radius:999px; background:#2f352c; color:#f7f5ec; white-space:nowrap; }
+  .pchip { font-size:12px; font-weight:500; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.5); border:1px solid rgba(94,108,80,.2); color:rgba(47,53,44,.7); white-space:nowrap; }
+  .psub { margin-top:auto; border-top:1px solid rgba(94,108,80,.14); padding-top:6px; }
+  .psub .pslab { font-size:10px; letter-spacing:1.4px; font-weight:600; color:rgba(47,53,44,.42); margin-bottom:4px; }
+  .psub .pm { display:flex; align-items:center; font-size:12.5px; color:rgba(47,53,44,.62); line-height:1.42; }
+  .psub .pm i { width:7px; height:7px; border-radius:50%; margin-right:8px; display:block; flex:0 0 7px; }
+  .psub .pm b { margin-left:auto; font-weight:600; color:#23281f; font-size:12.5px; }
+  .statstack { width:214px; flex:0 0 214px; display:flex; flex-direction:column; gap:14px; min-width:0; }
+  .stat2 { flex:1; padding:12px 14px 10px; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+  .stat2 .lab { font-size:12.5px; color:rgba(47,53,44,.55); font-weight:500; white-space:nowrap; padding-right:26px; }
+  .stat2 .ichip {
+    position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%;
+    border:1px solid rgba(94,108,80,.18); background:rgba(255,255,255,.5);
+    display:flex; align-items:center; justify-content:center; color:rgba(47,53,44,.55);
+  }
+  .stat2 .ichip svg { width:12px; height:12px; }
+  .stat2 .val { font-size:27px; font-weight:600; margin-top:2px; color:#23281f; line-height:1.15; }
+  .stat2 .foot { margin-top:auto; }
+  .stat2 .dpill { font-size:11px; font-weight:600; padding:3px 8px; border-radius:999px; background:rgba(111,154,106,.16); color:#4e7a44; display:inline-block; white-space:nowrap; }
+  .stat2 .dpill span { color:rgba(47,53,44,.45); font-weight:400; }
+  .stat2.acc { background:linear-gradient(150deg,#84ac77,#557c4c); border-color:rgba(255,255,255,.4); box-shadow:0 12px 26px rgba(85,124,76,.35), inset 0 1px 0 rgba(255,255,255,.35); }
+  .stat2.acc .lab { color:rgba(255,255,255,.88); }
+  .stat2.acc .val { color:#fff; }
+  .stat2.acc .ichip { background:rgba(255,255,255,.25); border-color:rgba(255,255,255,.35); color:#fff; }
+  .stat2.acc .dpill { background:rgba(255,255,255,.25); color:#f2f7ee; } .stat2.acc .dpill span { color:rgba(255,255,255,.75); }
+  /* bottom grid — wide table LEFT, stack RIGHT (mirrors V5) */
+  .bgrid { display:flex; gap:14px; flex:1; min-height:0; }
+  .rstack { width:300px; flex:0 0 300px; display:flex; flex-direction:column; gap:10px; min-height:0; }
+  .slimcard { flex:1; padding:10px 14px; display:flex; align-items:center; gap:11px; overflow:hidden; }
+  .slimcard .sic { width:30px; height:30px; flex:0 0 30px; border-radius:10px; background:rgba(111,154,106,.16); color:#4e7a44; display:flex; align-items:center; justify-content:center; }
+  .slimcard .sic svg { width:16px; height:16px; }
+  .slimcard .st1 { font-size:12.5px; font-weight:600; color:#23281f; line-height:1.25; }
+  .slimcard .st2 { font-size:11px; color:rgba(47,53,44,.5); line-height:1.3; }
+  .aicard { height:150px; flex:0 0 150px; padding:11px 13px; display:flex; flex-direction:column; overflow:hidden; }
+  .aicard .st { font-size:13.5px; font-weight:600; color:#23281f; display:flex; align-items:center; justify-content:space-between; }
+  .aicard .st .live2 { font-size:10px; color:#4e7a44; font-weight:700; letter-spacing:1px; display:flex; align-items:center; gap:5px; }
+  .aicard .st .live2 i { width:6px; height:6px; border-radius:50%; background:#6f9a6a; display:block; }
+  .airow { margin-top:8px; }
+  .airow .ail1 { display:flex; align-items:baseline; justify-content:space-between; }
+  .airow .ain { font-size:12px; font-weight:600; color:#23281f; }
+  .airow .ait2 { font-size:10px; font-weight:700; color:#4e7a44; letter-spacing:.4px; }
+  .airow .aim { font-size:11.5px; color:rgba(47,53,44,.62); line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .airow .aim span { color:rgba(47,53,44,.38); font-weight:400; }
+  .aitype { margin-top:auto; display:flex; align-items:center; gap:7px; font-size:11px; color:rgba(47,53,44,.5); font-style:italic; }
+  .tdots { display:flex; gap:3px; }
+  .tdot { width:5px; height:5px; border-radius:50%; background:#6f9a6a; display:block; }
+  /* tables */
+  .tablecard { flex:1; padding:10px 14px 4px; display:flex; flex-direction:column; min-width:0; overflow:hidden; }
+  .tablecard .thead { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+  .tablecard .thead .tt { font-size:14.5px; font-weight:600; color:#23281f; }
+  .tablecard .thead .tctrl { font-size:11.5px; color:rgba(47,53,44,.45); font-weight:500; display:flex; gap:14px; }
+  .tablecard .thead .tctrl b { color:#4e7a44; font-weight:600; }
+  .tcols, .trow { display:grid; grid-template-columns:1.9fr .92fr .9fr .8fr .6fr; align-items:center; gap:8px; }
+  .tablecard.p .tcols, .tablecard.p .trow { grid-template-columns:.78fr 1.85fr .85fr .8fr .62fr; }
+  .tablecard.p { padding-top:8px; }
+  .tablecard.p .trow { padding:2px 2px; }
+  .tablecard.p .trow .av2 { width:22px; height:22px; flex:0 0 22px; }
+  .tcols { font-size:10px; letter-spacing:1.2px; font-weight:600; color:rgba(47,53,44,.42); padding:5px 2px 4px; border-bottom:1px solid rgba(94,108,80,.14); }
+  .tcols span:last-child, .trow .vl { text-align:right; }
+  .trow { padding:4px 2px; border-bottom:1px solid rgba(94,108,80,.08); }
+  .trow:last-child { border-bottom:none; }
+  .trow .who { display:flex; align-items:center; gap:9px; min-width:0; }
+  .trow .av2 { width:24px; height:24px; flex:0 0 24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:#fff; }
+  .trow .nm { font-size:12.5px; font-weight:600; white-space:nowrap; color:#23281f; line-height:1.15; }
+  .trow .nm span { display:block; font-size:10.5px; color:rgba(47,53,44,.45); font-weight:400; }
+  .trow .jb { font-size:12px; color:rgba(47,53,44,.68); white-space:nowrap; overflow:hidden; }
+  .trow .dt { font-size:12px; color:rgba(47,53,44,.5); white-space:nowrap; }
+  .trow .vl { font-size:13px; font-weight:600; color:#23281f; white-space:nowrap; }
+  .trow .inv { font-size:12.5px; font-weight:600; color:rgba(47,53,44,.75); white-space:nowrap; }
+  .pill { font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; display:inline-block; white-space:nowrap; }
+  .pill.new { background:rgba(111,154,106,.15); color:#4e7a44; border:1px solid rgba(111,154,106,.45); }
+  .pill.rep { background:rgba(255,255,255,.45); color:rgba(47,53,44,.65); border:1px solid rgba(94,108,80,.2); }
+  .pill.bok { background:#557c4c; color:#ffffff; border:1px solid #557c4c; }
+  .pill.pen { background:rgba(217,119,6,.12); color:#b45309; border:1px solid rgba(217,119,6,.4); }
+  .pill.gold { background:rgba(201,171,94,.16); color:#8a6d2f; border:1px solid rgba(201,171,94,.45); }
+  .flipwrap { position:relative; display:inline-block; }
+  .flipwrap .flipB { position:absolute; left:0; top:0; }
+  /* ---------- PIPELINE — kanban ---------- */
+  .kanban { display:flex; gap:12px; flex:1; min-height:0; }
+  .kcol { flex:1; display:flex; flex-direction:column; gap:9px; background:rgba(255,255,255,.34); border:1px solid rgba(94,108,80,.12); border-radius:18px; padding:12px 10px; min-width:0; overflow:hidden; }
+  .khead { display:flex; align-items:center; gap:7px; padding:0 2px; }
+  .khead .kt { font-size:13px; font-weight:600; color:#23281f; white-space:nowrap; }
+  .khead .kcount { font-size:10.5px; font-weight:700; background:rgba(111,154,106,.18); color:#4e7a44; border-radius:999px; padding:2px 7px; }
+  .khead .ktot { margin-left:auto; font-size:11.5px; font-weight:600; color:rgba(47,53,44,.55); white-space:nowrap; }
+  .kcard { background:rgba(255,255,255,.78); border:1px solid rgba(94,108,80,.12); border-radius:13px; padding:10px 11px; box-shadow:0 4px 10px rgba(101,112,84,.10); }
+  .kcard .kn { font-size:12.5px; font-weight:600; color:#23281f; line-height:1.2; white-space:nowrap; overflow:hidden; }
+  .kcard .kj { font-size:11px; color:rgba(47,53,44,.52); margin-top:1px; white-space:nowrap; overflow:hidden; }
+  .kcard .krow { display:flex; align-items:center; justify-content:space-between; margin-top:7px; }
+  .kcard .kv { font-size:12.5px; font-weight:700; color:#4e7a44; }
+  .kcard .kwhen { font-size:10.5px; color:rgba(47,53,44,.45); font-weight:500; }
+  .kpill { font-size:9.5px; font-weight:700; letter-spacing:.3px; padding:2px 7px; border-radius:999px; white-space:nowrap; }
+  .kpill.sage { background:rgba(111,154,106,.16); color:#4e7a44; }
+  .kpill.fill { background:#557c4c; color:#fff; }
+  .kpill.line { background:rgba(255,255,255,.5); color:rgba(47,53,44,.6); border:1px solid rgba(94,108,80,.22); }
+  .knote { background:rgba(111,154,106,.13); border:1px dashed rgba(111,154,106,.45); border-radius:13px; padding:10px 11px; font-size:11.5px; line-height:1.4; color:#40603a; }
+  .knote b { color:#2f4d2a; }
+  .kmore { font-size:11px; color:rgba(47,53,44,.4); text-align:center; padding-top:2px; }
+  /* ---------- PAYMENTS ---------- */
+  .statrow { display:flex; gap:14px; height:90px; flex:0 0 90px; }
+  .statrow .stat2 { flex:1; padding:10px 14px 8px; }
+  .hcard { height:136px; flex:0 0 136px; padding:11px 18px 9px; display:flex; flex-direction:column; overflow:hidden; }
+  .hcard .ct { font-size:14.5px; font-weight:600; color:#23281f; display:flex; align-items:center; justify-content:space-between; }
+  .hcard .ct .csub2 { font-size:11px; color:rgba(47,53,44,.5); font-weight:500; }
+  .hbars { flex:1; display:flex; flex-direction:column; justify-content:space-evenly; margin-top:4px; min-height:0; }
+  .hrow { display:flex; align-items:center; gap:12px; }
+  .hrow .hl { font-size:11.5px; font-weight:600; color:rgba(47,53,44,.55); width:30px; flex:0 0 30px; line-height:1.1; }
+  .hrow .htrack { flex:1; height:12px; border-radius:999px; background:rgba(94,108,80,.12); overflow:hidden; }
+  .hrow .hfill { height:100%; border-radius:999px; background:linear-gradient(90deg,#84ac77,#557c4c); transform-origin:left center; }
+  .hrow .hv { font-size:12px; font-weight:600; color:#23281f; width:40px; flex:0 0 40px; text-align:right; line-height:1.1; }
+  /* ---------- CLIENTS — directory ---------- */
+  .crow { display:flex; gap:14px; flex:1; min-height:0; }
+  .av3 { width:30px; height:30px; flex:0 0 30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:#fff; }
+  .listcard { width:330px; flex:0 0 330px; padding:12px 10px; display:flex; flex-direction:column; overflow:hidden; }
+  .lhead { display:flex; align-items:center; justify-content:space-between; padding:0 6px 9px; }
+  .lhead .lt2 { font-size:15px; font-weight:600; color:#23281f; }
+  .lchip { font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; background:rgba(111,154,106,.15); color:#4e7a44; white-space:nowrap; }
+  .llist { display:flex; flex-direction:column; gap:5px; flex:1; min-height:0; }
+  .litem { flex:1; display:flex; align-items:center; gap:10px; padding:7px 8px; border-radius:14px; border:1px solid transparent; min-height:0; }
+  .litem.on { background:rgba(111,154,106,.12); border-color:rgba(111,154,106,.4); }
+  .lmid { flex:1; min-width:0; }
+  .lnm { font-size:13px; font-weight:600; color:#23281f; line-height:1.2; white-space:nowrap; }
+  .lsub { font-size:11px; color:rgba(47,53,44,.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+  .detailcard { flex:1; padding:15px 18px 12px; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+  .detailcard .dh { display:flex; align-items:center; gap:12px; }
+  .detailcard .dn2 { font-size:17px; font-weight:600; color:#23281f; line-height:1.15; }
+  .detailcard .ds2 { font-size:12px; color:rgba(47,53,44,.52); margin-top:1px; }
+  .detailcard .dstats { display:flex; gap:12px; margin-top:14px; }
+  .detailcard .dstat { flex:1; background:rgba(255,255,255,.5); border:1px solid rgba(94,108,80,.13); border-radius:15px; padding:10px 13px; }
+  .detailcard .dstat .dl3 { font-size:10.5px; letter-spacing:1px; font-weight:600; color:rgba(47,53,44,.45); }
+  .detailcard .dstat .dv3 { font-size:19px; font-weight:600; color:#23281f; margin-top:2px; }
+  .detailcard .hist { margin-top:14px; display:flex; flex-direction:column; }
+  .detailcard .hrow2 { display:flex; align-items:center; gap:10px; padding:9px 2px; border-bottom:1px solid rgba(94,108,80,.09); }
+  .detailcard .hrow2:last-child { border-bottom:none; }
+  .detailcard .hrow2 .hn { font-size:13px; font-weight:600; color:#23281f; }
+  .detailcard .hrow2 .hn span { display:block; font-size:11px; color:rgba(47,53,44,.48); font-weight:400; }
+  .detailcard .hrow2 .hv2 { margin-left:auto; font-size:13.5px; font-weight:600; color:#23281f; }
+  .detailcard .ainote { margin-top:auto; background:rgba(111,154,106,.12); border:1px solid rgba(111,154,106,.3); border-radius:14px; padding:10px 13px; font-size:12px; line-height:1.45; color:#40603a; display:flex; gap:9px; align-items:flex-start; }
+  .detailcard .ainote i { width:7px; height:7px; border-radius:50%; background:#6f9a6a; display:block; flex:0 0 7px; margin-top:5px; }
+  .detailcard .ainote b { color:#2f4d2a; }
+
+  /* ---------- CODE ZONE (format unchanged) ---------- */
+  .codewin {
+    margin:56px 48px 0; height:596px; border-radius:24px; overflow:hidden;
+    background:#0b0e15; border:1px solid rgba(255,255,255,.11);
+    box-shadow:0 34px 80px rgba(0,0,0,.6);
+  }
+  .codebar {
+    height:64px; background:#11141d; display:flex; align-items:center; gap:9px;
+    padding:0 22px; border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .cdot { width:15px; height:15px; border-radius:50%; }
+  .tab {
+    margin-left:20px; background:#0b0e15; border:1px solid rgba(255,255,255,.08); border-bottom:none;
+    padding:9px 18px; border-radius:10px 10px 0 0; font-family:'Liberation Mono',monospace;
+    font-size:16.5px; color:#d7deeb; align-self:flex-end; height:44px; display:flex; align-items:center;
+  }
+  .tab i { color:#ff8a3d; font-style:normal; }
+  pre {
+    padding:30px 34px; font-family:'Liberation Mono','DejaVu Sans Mono',monospace;
+    font-size:23.5px; line-height:1.85; color:#a9b7d0; white-space:pre;
+  }
+  .k { color:#c792ea; } .s { color:#9ece6a; } .t { color:#7aa2f7; }
+  .f { color:#82aaff; } .p { color:#89ddff; } .n { color:#f78c6c; } .cm { color:#565f89; }
+</style>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html,body { width:auto !important; height:auto !important; overflow:visible !important; background:#000 !important; }
+  body { padding:20px 10px 36px; }
+  .title-zone, .codewin { display:none !important; }
+  .stage { margin:0 !important; }
+  .apphead { text-align:center; color:#fff; font-family:Arial,sans-serif; margin-bottom:16px; }
+  .apphead .t { font-size:21px; font-weight:700; }
+  .apphead .t span { color:#a9c795; }
+  .apphead .s { margin-top:6px; font-size:13px; color:#8b8b8b; }
+  #stageWrap { position:relative; width:100%; overflow:hidden; border-radius:6px; }
+  .howto { margin:20px auto 0; max-width:430px; font-size:13px; line-height:1.65; color:#9aa0a6;
+    background:#0B1114; border:1px solid #1b2b30; border-radius:16px; padding:16px 18px;
+    font-family:Arial,sans-serif; }
+  .howto b { color:#E6F2F0; }
+</style>
+</head>
+<body>
+  <div class="title-zone">
+    <div class="name">Glassy CRM</div>
+    <div class="ver">V7</div>
+  </div>
+
+  <div class="stage">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="rail" id="rail"></div>
+    <div class="dash">
+      <div class="main2">
+        <div class="dhead">
+          <div class="greet">Good morning, Ashcombe Homes</div>
+          <div class="gsub">Tuesday · 4 site visits today · <span class="livedot" id="livedot"></span><span class="teal">AI receptionist live</span></div>
+        </div>
+        <div class="views" id="views"></div>
+      </div>
+    </div>
+    <div class="dock">
+      <span>Home</span><span>Pipeline</span><span>Payments</span><span>Clients</span>
+      <span class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></span>
+    </div>
+  </div>
+
+  <div class="codewin">
+    <div class="codebar">
+      <div class="cdot" style="background:#ff5f57"></div>
+      <div class="cdot" style="background:#febc2e"></div>
+      <div class="cdot" style="background:#28c840"></div>
+      <div class="tab">Pipeline<i>.jsx</i></div>
+    </div>
+    <pre><code><span class="k">import</span> { DndContext } <span class="k">from</span> <span class="s">'@dnd-kit/core'</span>;
+<span class="k">import</span> { Column } <span class="k">from</span> <span class="s">'./Column'</span>;
+
+<span class="k">const</span> stages = [<span class="s">'New'</span>, <span class="s">'Quoted'</span>, <span class="s">'Booked'</span>, <span class="s">'In progress'</span>];
+
+<span class="k">export const</span> <span class="f">PipelineBoard</span> = ({ jobs }) =&gt; (
+  &lt;<span class="t">DndContext</span> <span class="p">onDragEnd</span>={moveJob}&gt;
+    &lt;<span class="t">div</span> <span class="p">className</span>=<span class="s">"board sage-glass"</span>&gt;
+      {stages.<span class="f">map</span>(stage =&gt; (
+        &lt;<span class="t">Column</span> <span class="p">key</span>={stage} <span class="p">title</span>={stage}
+          <span class="p">jobs</span>={jobs.<span class="f">filter</span>(j =&gt; j.stage === stage)} /&gt;
+      ))}</code></pre>
+  </div>
+<script>
+/* ---------- icons ---------- */
+const P = {
+  grid:'<rect x="3" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.8"/>',
+  kanban:'<rect x="3" y="3" width="5" height="18" rx="1.6"/><rect x="9.5" y="3" width="5" height="12" rx="1.6"/><rect x="16" y="3" width="5" height="15" rx="1.6"/>',
+  pound:'<path d="M17.5 6.5C16.6 5 14.9 4 13 4c-2.8 0-5 2.2-5 5v2H5.5M8 15H5.5M8 11h6.5M8 11v5.5L6.8 20h11"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M16 5.2a3.5 3.5 0 0 1 0 5.9M18.5 15.4c1 .8 1.7 2 2 4.6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/>'
+};
+const svg = (paths, fill) => `<svg viewBox="0 0 24 24" fill="${fill ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+/* ---------- rail (static chrome; only its active state changes) ---------- */
+const RAIL = ['grid','kanban','pound','users'];
+document.getElementById('rail').innerHTML =
+  RAIL.map((k,i)=>`<div class="ric" data-ic="${i}">${svg(P[k])}<span class="dot"></span></div>`).join('') +
+  `<div class="rsep"></div><div class="ric">${svg(P.plus)}</div><div class="ric">${svg(P.check)}</div>`;
+/* ---------- builders ---------- */
+const stat = (lab, icon, val, pill, acc) => `<div class="stat2 card${acc ? ' acc' : ''}"><div class="lab">${lab}</div><div class="ichip">${svg(P[icon])}</div><div class="val">${val}</div><div class="foot"><span class="dpill">${pill}</span></div></div>`;
+const AV = ['linear-gradient(145deg,#84ac77,#557c4c)','linear-gradient(145deg,#c9ab5e,#a5813f)','linear-gradient(145deg,#a8b8a0,#71856a)','linear-gradient(145deg,#c4a183,#9c7a58)','linear-gradient(145deg,#93a78b,#61755c)'];
+const who = (i, ini, nm, area) => `<div class="who"><div class="av2" style="background:${AV[i % 5]}">${ini}</div><div class="nm">${nm}<span>${area}</span></div></div>`;
+const table = (title, cols, rows, p) => `<div class="tablecard card${p ? ' p' : ''}"><div class="thead"><div class="tt">${title}</div><div class="tctrl"><span>⌕ Search</span><b>Filter ▾</b></div></div><div class="tcols">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${rows.join('')}</div>`;
+const row = (cells) => `<div class="trow">${cells}</div>`;
+const aifeed = () => `<div class="aicard card"><div class="st">AI Replies <span class="live2"><i class="livedot2"></i>LIVE</span></div>
+  <div class="airow"><div class="ail1"><span class="ain">Amelia Foster</span><span class="ait2">✓ VISIT BOOKED</span></div><div class="aim">“Thursday 11:00 works, you are booked in.” <span>· 4m ago</span></div></div>
+  <div class="airow"><div class="ail1"><span class="ain">Freddie Holt</span><span class="ait2">✓ REPLIED IN 31s</span></div><div class="aim">“Friday afternoon suits us, thanks.” <span>· 11m ago</span></div></div>
+  <div class="aitype"><span class="tdots"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></span>AI is replying to a new enquiry…</div></div>`;
+const slimCal = `<div class="slimcard card"><div class="sic">${svg(P.cal)}</div><div><div class="st1">Next visit — Shah, renovation survey</div><div class="st2">Today · 11:00 AM · Bathwick</div></div></div>`;
+const kcard = (nm, job, val, right, fade) => `<div class="kcard" data-fade="${fade}"><div class="kn">${nm}</div><div class="kj">${job}</div><div class="krow"><span class="kv">${val}</span>${right}</div></div>`;
+const kwhen = (txt) => `<span class="kwhen">${txt}</span>`;
+const kp = (cls, txt) => `<span class="kpill ${cls}">${txt}</span>`;
+const kcol = (title, count, total, cards) => `<div class="kcol"><div class="khead"><span class="kt">${title}</span><span class="kcount">${count}</span><span class="ktot">${total}</span></div>${cards}</div>`;
+const hrow = (lab, pct, val) => `<div class="hrow"><span class="hl">${lab}</span><div class="htrack"><div class="hfill" data-hbar style="width:${pct}%"></div></div><span class="hv">${val}</span></div>`;
+const li = (i, ini, nm, sub, pill, on) => `<div class="litem${on ? ' on' : ''}"><div class="av3" style="background:${AV[i % 5]}">${ini}</div><div class="lmid"><div class="lnm">${nm}</div><div class="lsub">${sub}</div></div>${pill}</div>`;
+const mp = (cls, txt) => `<span class="pill ${cls}">${txt}</span>`;
+const VIEWS = [
+/* ---------- 1 · HOME — donut-led ---------- */
+`<div class="tgrid">
+   <div class="donutcard card">
+     <div class="ct">Enquiries by source <span class="csub2">June so far</span></div>
+     <div class="donutwrap">
+       <div class="donuthold">
+         <svg width="150" height="150" viewBox="0 0 120 120">
+           <circle cx="60" cy="60" r="46" fill="none" stroke="rgba(94,108,80,.12)" stroke-width="17"/>
+           <circle class="seg" data-len="132.9" cx="60" cy="60" r="46" fill="none" stroke="#6f9a6a" stroke-width="17" stroke-dasharray="132.9 156.1" transform="rotate(-90 60 60)"/>
+           <circle class="seg" data-len="98.3" cx="60" cy="60" r="46" fill="none" stroke="#c9ab5e" stroke-width="17" stroke-dasharray="98.3 190.7" transform="rotate(75.6 60 60)"/>
+           <circle class="seg" data-len="57.8" cx="60" cy="60" r="46" fill="none" stroke="#b9c4ae" stroke-width="17" stroke-dasharray="57.8 231.2" transform="rotate(198 60 60)"/>
+         </svg>
+         <div class="donutnum"><div class="dn"><span data-count="214">0</span></div><div class="dl2">ENQUIRIES</div></div>
+       </div>
+       <div class="dlegend">
+         <div class="dl"><i style="background:#6f9a6a"></i>Website<b>46%</b></div>
+         <div class="dl"><i style="background:#c9ab5e"></i>Referrals<b>34%</b></div>
+         <div class="dl"><i style="background:#b9c4ae"></i>Google<b>20%</b></div>
+       </div>
+     </div>
+   </div>
+   <div class="primary card">
+     <div class="plab">Pipeline value <span class="live2"><i class="livedot2"></i>LIVE</span></div>
+     <div class="pval">£<span data-count="528900" data-fmt="1">0</span></div>
+     <div class="pdelta">▲ 18% <span>vs last month</span></div>
+     <div class="pctrls"><span class="pbtn">This month ▾</span><span class="pchip">Quotes</span><span class="pchip">Visits</span></div>
+     <div class="psub"><div class="pslab">PIPELINE · 3 STAGES</div>
+       <div class="pm"><i style="background:#6f9a6a"></i>Quotes sent<b>£211,950</b></div>
+       <div class="pm"><i style="background:#c9ab5e"></i>Deposits received<b>£63,400</b></div>
+       <div class="pm"><i style="background:#b9c4ae"></i>Starts booked in<b>9</b></div>
+     </div>
+   </div>
+   <div class="statstack">
+     ${stat('Visits booked','cal','<span data-count="46">0</span>','▲ 12% <span>this week</span>',1)}
+     ${stat('Reply time','clock','<span data-count="31">0</span>s','24/7 <span>· instant</span>',0)}
+   </div>
+ </div>
+ <div class="bgrid">
+   ${table('Recent enquiries', ['CLIENT','JOB','STATUS','DATE','VALUE'], [
+     row(who(0,'DW','Daniel Whitfield','Wellow') + '<div class="jb">Extension</div><div><span class="pill new">New</span></div><div class="dt">Today · 10:12</div><div class="vl">£64,500</div>'),
+     row(who(1,'AF','Amelia Foster','Bathwick') + '<div class="jb">Renovation</div><div><span class="pill bok">Visit booked</span></div><div class="dt">Today · 09:47</div><div class="vl">£96,200</div>'),
+     row(who(2,'SM','Sophie Marlow','Combe Down') + '<div class="jb">Loft</div><div><span class="pill rep">Replied</span></div><div class="dt">Today · 09:15</div><div class="vl">£41,300</div>'),
+     row(who(3,'BH','Ben Harrington','Larkhall') + '<div class="jb">Garden room</div><div><span class="pill new">New</span></div><div class="dt">Yesterday</div><div class="vl">£29,750</div>')
+   ])}
+   <div class="rstack">${aifeed()}${slimCal}</div>
+ </div>`,
+/* ---------- 2 · PIPELINE — kanban ---------- */
+`<div class="kanban">
+   ${kcol('New', 4, '£174,900',
+     kcard('Daniel Whitfield','Extension · Wellow','£64,500', kwhen('2h ago'), 0.05) +
+     kcard('Isla Cameron','Kitchen · Bear Flat','£38,900', kwhen('3h ago'), 0.14) +
+     kcard('Noah Pemberton','Loft · Southdown','£44,200', kwhen('5h ago'), 0.23) +
+     kcard('Rosa Bennett','Garden room · Weston','£27,300', kwhen('Yesterday'), 0.32))}
+   ${kcol('Quoted', 4, '£211,950',
+     kcard('Grace Lindley','Renovation · Widcombe','£87,600', kp('sage','SENT'), 0.09) +
+     kcard('Freddie Holt','Garden studio · Larkhall','£31,400', kp('sage','SENT'), 0.18) +
+     kcard('The Hendersons','Extension · Bathford','£49,850', kp('line','VIEWED'), 0.27) +
+     kcard('Tom Ellery','Loft · Twerton','£43,100', kp('sage','SENT'), 0.36))}
+   ${kcol('Booked', 4, '£220,600',
+     kcard('Amelia Foster','Renovation · Bathwick','£96,200', kp('fill','STARTS 22 JUN'), 0.07) +
+     kcard('Ben Harrington','Garden room · Larkhall','£29,750', kp('line','DEPOSIT PAID'), 0.16) +
+     kcard('Jack Rennie','Extension · Odd Down','£58,400', kp('fill','STARTS 29 JUN'), 0.25) +
+     kcard('Olivia Fenn','Kitchen · Combe Down','£36,250', kp('line','DEPOSIT PAID'), 0.34))}
+   ${kcol('In progress', 3, '£200,000',
+     kcard('The Whitcombes','Barn conversion · Freshford','£112,000', kp('gold','WEEK 6 OF 9'), 0.11) +
+     kcard('Hartley family','Extension · Saltford','£46,700', kp('gold','WEEK 3 OF 7'), 0.2) +
+     kcard('Sophie Marlow','Loft · Combe Down','£41,300', kp('gold','WEEK 2 OF 5'), 0.29) +
+     `<div class="knote" data-fade="0.42"><b>AI note</b> — two visits booked from this column today, reminders sent.</div>`)}
+ </div>`,
+/* ---------- 3 · PAYMENTS — horizontal bars ---------- */
+`<div class="statrow">
+   ${stat('Paid this month','pound','£<span data-count="86430" data-fmt="1">0</span>','▲ 24% <span>vs May</span>',1)}
+   ${stat('Outstanding','clock','£<span data-count="23180" data-fmt="1">0</span>','5 <span>invoices open</span>',0)}
+   ${stat('Overdue','cal','£<span data-count="4260" data-fmt="1">0</span>','2 <span>· chased by AI</span>',0)}
+ </div>
+ <div class="hcard card">
+   <div class="ct">Collected by month <span class="csub2">Invoice payments received</span></div>
+   <div class="hbars">
+     ${hrow('Jan', 44, '£38k')}
+     ${hrow('Feb', 55, '£47k')}
+     ${hrow('Mar', 51, '£44k')}
+     ${hrow('Apr', 73, '£63k')}
+     ${hrow('May', 83, '£71k')}
+     ${hrow('Jun', 100, '£86k')}
+   </div>
+ </div>
+ ${table('Latest invoices', ['INVOICE','CLIENT','STATUS','DATE','AMOUNT'], [
+   row('<div class="inv">INV-2041</div>' + who(1,'AF','Amelia Foster','Bathwick') + '<div><span class="pill bok">Paid</span></div><div class="dt">28 Jun</div><div class="vl">£18,500</div>'),
+   row('<div class="inv">INV-2040</div>' + who(3,'BH','Ben Harrington','Larkhall') + '<div><span class="pill bok">Paid</span></div><div class="dt">26 Jun</div><div class="vl">£7,400</div>'),
+   row('<div class="inv">INV-2039</div>' + who(2,'GL','Grace Lindley','Widcombe') + '<div><span class="flipwrap"><span class="pill rep flipA">Sent</span><span class="pill bok flipB">Paid</span></span></div><div class="dt">24 Jun</div><div class="vl">£21,750</div>'),
+   row('<div class="inv">INV-2038</div>' + who(4,'JR','Jack Rennie','Odd Down') + '<div><span class="pill rep">Sent</span></div><div class="dt">21 Jun</div><div class="vl">£12,300</div>'),
+   row('<div class="inv">INV-2036</div>' + who(0,'HF','Hartley family','Saltford') + '<div><span class="pill pen">Overdue</span></div><div class="dt">12 Jun</div><div class="vl">£4,260</div>')
+ ], 1)}`,
+/* ---------- 4 · CLIENTS — directory ---------- */
+`<div class="crow">
+   <div class="listcard card">
+     <div class="lhead"><span class="lt2">Clients</span><span class="lchip">86 active</span></div>
+     <div class="llist">
+       ${li(1,'AF','Amelia Foster','Bathwick · 3 jobs · £148,200', mp('bok','ACTIVE'), 1)}
+       ${li(0,'DW','Daniel Whitfield','Wellow · 2 jobs · £91,300', mp('bok','ACTIVE'), 0)}
+       ${li(2,'GL','Grace Lindley','Widcombe · 4 jobs · £203,450', mp('gold','REPEAT'), 0)}
+       ${li(3,'BH','Ben Harrington','Larkhall · 1 job · £29,750', mp('new','NEW'), 0)}
+       ${li(4,'IC','Isla Cameron','Bear Flat · 2 jobs · £57,600', mp('bok','ACTIVE'), 0)}
+       ${li(0,'JR','Jack Rennie','Odd Down · 3 jobs · £121,900', mp('gold','REPEAT'), 0)}
+     </div>
+   </div>
+   <div class="detailcard card">
+     <div class="dh">
+       <div class="av3" style="background:${AV[1]};width:38px;height:38px;flex:0 0 38px;font-size:13px">AF</div>
+       <div><div class="dn2">Amelia Foster</div><div class="ds2">Bathwick · client since 2023 · 3 jobs with Ashcombe</div></div>
+       <span class="pill bok" style="margin-left:auto">Active</span>
+     </div>
+     <div class="dstats">
+       <div class="dstat"><div class="dl3">JOBS DONE</div><div class="dv3"><span data-count="3">0</span></div></div>
+       <div class="dstat"><div class="dl3">TOTAL SPENT</div><div class="dv3">£<span data-count="148200" data-fmt="1">0</span></div></div>
+       <div class="dstat"><div class="dl3">RATING</div><div class="dv3">★ 5.0</div></div>
+     </div>
+     <div class="hist">
+       <div class="hrow2"><div class="hn">Renovation<span>Bathwick · started May</span></div><span class="pill gold">In progress</span><div class="hv2">£96,200</div></div>
+       <div class="hrow2"><div class="hn">Kitchen refit<span>Bathwick · completed March</span></div><span class="pill bok">Paid</span><div class="hv2">£34,800</div></div>
+       <div class="hrow2"><div class="hn">Garden studio<span>Bathwick · completed 2024</span></div><span class="pill bok">Paid</span><div class="hv2">£17,200</div></div>
+     </div>
+     <div class="ainote"><i></i><div><b>AI note</b> — a review request went out after the kitchen refit. Amelia replied with five stars and two referrals.</div></div>
+   </div>
+ </div>`
+];
+document.getElementById('views').innerHTML = VIEWS.map((v,i)=>`<div class="view" id="v${i}">${v}</div>`).join('');
+
+/* ---------- motion ----------
+   Chrome (rail, header, window, dock, code pane) is never transformed.
+   A tab switch = sidebar active state flips at the slot boundary, then the
+   content area crossfades IN PLACE over 200ms. No translations anywhere.
+   Inside a view, only in-place micro-animation: counters, bars growing from
+   their baseline, donut drawing, one pill flip, AI typing dots. */
+function renderAt(t) {
+  const DUR = 1.5, XF = 0.2;
+  const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+  const easeOut = x=>1-Math.pow(1-x,3);
+  const smooth = x=>{ x = clamp(x,0,1); return x*x*(3-2*x); };
+  const slotF = t / DUR;
+  const slot = Math.floor(slotF) % 4;
+  const lt = t - Math.floor(slotF) * DUR;
+  const prev = (slot + 3) % 4;
+
+  document.querySelectorAll('.view').forEach((el,i)=>{
+    let op = 0, age = 0;
+    if (i === slot)      { op = lt < XF ? smooth(lt / XF) : 1; age = lt; }
+    else if (i === prev) { op = lt < XF ? 1 - smooth(lt / XF) : 0; age = DUR + lt; }
+    el.style.opacity = op.toFixed(3);
+    el.style.zIndex = i === slot ? 2 : 1;
+    el.style.visibility = op <= 0 ? 'hidden' : 'visible';
+    if (op <= 0) return;
+    const p = easeOut(clamp(age / 0.9, 0, 1));
+    el.querySelectorAll('[data-count]').forEach(c=>{
+      const v = Math.round(parseFloat(c.dataset.count) * p);
+      c.textContent = c.dataset.fmt ? v.toLocaleString('en-GB') : v;
+    });
+    el.querySelectorAll('[data-hbar]').forEach((b,idx)=>{
+      const bp = easeOut(clamp((age - 0.08 - idx * 0.06) / 0.7, 0, 1));
+      b.style.transform = `scaleX(${Math.max(0.02, bp).toFixed(3)})`;
+    });
+    el.querySelectorAll('.seg').forEach((s,idx)=>{
+      const len = parseFloat(s.dataset.len);
+      const sp = easeOut(clamp((age - 0.1 - idx * 0.12) / 0.7, 0, 1));
+      s.style.strokeDashoffset = (len * (1 - sp)).toFixed(1);
+    });
+    el.querySelectorAll('[data-fade]').forEach(f=>{
+      const fp = easeOut(clamp((age - parseFloat(f.dataset.fade)) / 0.45, 0, 1));
+      f.style.opacity = fp.toFixed(3);
+    });
+    const fw = el.querySelector('.flipwrap');
+    if (fw) {
+      const fp = clamp((age - 1.05) / 0.15, 0, 1);
+      fw.querySelector('.flipA').style.opacity = (1 - fp).toFixed(3);
+      fw.querySelector('.flipB').style.opacity = fp.toFixed(3);
+    }
+  });
+
+  /* sidebar active state — flips at the boundary, dot fades in over 150ms */
+  document.querySelectorAll('.ric[data-ic]').forEach(ic=>{
+    const on = parseInt(ic.dataset.ic) === slot;
+    ic.classList.toggle('on', on);
+    ic.querySelector('.dot').style.opacity = on ? clamp(lt / 0.15, 0, 1).toFixed(3) : 0;
+  });
+  /* live dots + AI typing dots — continuous, subtle, like a real app */
+  const pulse = 0.55 + 0.45 * Math.sin(t * 2.4);
+  const ld = document.getElementById('livedot');
+  if (ld) ld.style.opacity = pulse.toFixed(3);
+  document.querySelectorAll('.livedot2').forEach(d=>{ d.style.opacity = pulse.toFixed(3); });
+  document.querySelectorAll('.tdot').forEach((d,k)=>{
+    d.style.opacity = (0.3 + 0.4 * (0.5 + 0.5 * Math.sin(t * 4.2 - k * 1.05))).toFixed(3);
+  });
+}
+window.renderAt = renderAt;
+renderAt(parseFloat(new URLSearchParams(location.search).get('t') || '0'));
+</script>
+
+<script>
+  (function(){
+    var stage = document.querySelector('.stage');
+    var head = document.createElement('div');
+    head.className = 'apphead';
+    head.innerHTML = '<div class="t">Glassy CRM <span>V7</span></div><div class="s">The dashboard from the reel, running live in your browser. Its pages switch on their own, exactly like in the reel.</div>';
+    document.body.insertBefore(head, document.body.firstChild);
+    var wrap = document.createElement('div');
+    wrap.id = 'stageWrap';
+    stage.parentNode.insertBefore(wrap, stage);
+    wrap.appendChild(stage);
+    var how = document.createElement('div');
+    how.className = 'howto';
+    how.innerHTML = '<b>How to make it yours</b><br>This page is the complete source code in one file, the same file that runs the demo above. Save this page (browser menu, Save page) and open the file in any browser, it runs as is. Open it in any code editor to change the colours, the numbers and the page content, and it becomes your own dashboard.';
+    document.body.appendChild(how);
+    function fit(){
+      var w = wrap.clientWidth || window.innerWidth - 20;
+      var sc = Math.min(1, w / 1080);
+      stage.style.transform = 'scale(' + sc + ')';
+      stage.style.transformOrigin = 'top left';
+      wrap.style.height = (694 * sc) + 'px';
+    }
+    window.addEventListener('resize', fit);
+    fit();
+    var t0 = performance.now();
+    (function fr(now){
+      window.renderAt(((now - t0) / 1000) % 6);
+      requestAnimationFrame(fr);
+    })(t0);
+  })();
+</script>
+</body>
+</html>
