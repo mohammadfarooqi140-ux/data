@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glassy OTP V5 — working demo</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { min-height:100%; background:#000; }
+  body { font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif; color:#fff;
+    display:flex; flex-direction:column; align-items:center; padding:28px 16px 40px;
+    -webkit-font-smoothing:antialiased; }
+  h1.title { font-size:21px; font-weight:700; letter-spacing:.2px; text-align:center; }
+  h1.title span { color:#2DD4BF; }
+  .sub { margin-top:6px; font-size:13px; color:#7d8a8e; text-align:center; }
+  #panel { margin-top:22px; width:100%; max-width:430px; background:#0E1B1F;
+    border:1px solid #1E3A40; border-radius:24px; padding:26px 22px 30px;
+    box-shadow:0 24px 60px rgba(0,0,0,.55); }
+  #handle { width:52px; height:5px; border-radius:99px; background:#33555c; margin:0 auto 20px; }
+  h2 { font-size:22px; font-weight:700; text-align:center; }
+  .subtext { margin-top:9px; font-size:13.5px; line-height:1.55; color:#8A9BA0; text-align:center; }
+  #stage { position:relative; height:270px; margin-top:8px; }
+  #orbitSvg { position:absolute; inset:0; width:100%; height:100%; opacity:0; transition:opacity .3s; }
+  .box { position:absolute; width:64px; height:64px; border-radius:15px; background:#152529;
+    border:2px solid #29464D; display:flex; align-items:center; justify-content:center;
+    font-size:30px; font-weight:700; color:#fff; cursor:pointer; user-select:none;
+    transition:border-color .15s, box-shadow .15s; will-change:transform; }
+  .box.focused { border-color:#14B8A6; box-shadow:0 0 18px rgba(20,184,166,.5); }
+  .box .caret { position:absolute; width:3px; height:30px; background:#fff; border-radius:2px;
+    animation:pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:.25} 50%{opacity:1} }
+  #resend { text-align:center; font-size:13.5px; color:#8A9BA0; }
+  #resend button { background:none; border:none; color:#fff; font-weight:700; font-size:13.5px; cursor:pointer; }
+  #success { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; opacity:0; pointer-events:none; transition:opacity .35s; }
+  #tickwrap { position:relative; width:150px; height:150px; }
+  #tickbox { position:absolute; left:50%; top:50%; width:60px; height:60px; transform:translate(-50%,-50%);
+    border-radius:15px; background:#0B0B0B; border:3px solid #34D399;
+    display:flex; align-items:center; justify-content:center; }
+  #secured { margin-top:16px; font-size:16px; font-weight:700; color:#34D399; }
+  #again { margin-top:18px; background:#14B8A6; color:#04241f; border:none; font-weight:700;
+    font-size:14px; padding:10px 22px; border-radius:999px; cursor:pointer; }
+  .howto { margin-top:22px; width:100%; max-width:430px; font-size:13px; line-height:1.65; color:#8A9BA0;
+    background:#0B1114; border:1px solid #1b2b30; border-radius:16px; padding:16px 18px; }
+  .howto b { color:#E6F2F0; }
+  .howto code { color:#2DD4BF; font-family:ui-monospace,Menlo,monospace; font-size:12px; }
+  input#ghost { position:absolute; opacity:0; pointer-events:none; height:1px; width:1px; }
+</style>
+</head>
+<body>
+  <h1 class="title">Glassy OTP <span>V5</span></h1>
+  <div class="sub">The working demo from the reel. It actually works — try it.</div>
+
+  <div id="panel">
+    <div id="handle"></div>
+    <h2 id="heading">Let&rsquo;s verify your number</h2>
+    <p class="subtext" id="subtext">We&rsquo;ve sent a 4-digit code to your phone.<br>It&rsquo;ll auto-verify once entered.</p>
+
+    <div id="stage">
+      <svg id="orbitSvg" viewBox="0 0 386 270">
+        <circle cx="193" cy="135" r="86" fill="none" stroke="rgba(255,255,255,.25)"
+          stroke-width="2" stroke-dasharray="6 9"/>
+      </svg>
+      <div class="box" data-i="0"><span class="dig"></span></div>
+      <div class="box" data-i="1"><span class="dig"></span></div>
+      <div class="box" data-i="2"><span class="dig"></span></div>
+      <div class="box" data-i="3"><span class="dig"></span></div>
+      <div id="success">
+        <div id="tickwrap">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle id="ring" cx="75" cy="75" r="69" fill="none" stroke="#34D399" stroke-width="3.5"
+              stroke-linecap="round" transform="rotate(-90 75 75)"/>
+          </svg>
+          <div id="tickbox">
+            <svg width="32" height="32" viewBox="0 0 24 24"><path d="M4 12.5 L9.5 18 L20 6.5" fill="none"
+              stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div id="secured">&#128274; Verified &amp; Secured</div>
+      </div>
+    </div>
+
+    <div id="resend">Didn&rsquo;t receive the code? <button id="resendBtn" type="button">Resend</button></div>
+    <div style="text-align:center"><button id="again" type="button" style="display:none">Try it again</button></div>
+    <input id="ghost" inputmode="numeric" autocomplete="one-time-code" maxlength="4">
+  </div>
+
+  <div class="howto">
+    <b>How to make it yours</b><br>
+    This page is the complete source code in one file, the same one that runs the demo above.
+    Save this page (browser menu &rarr; Save page, or long-press the link you received) and open the
+    file in any browser, it runs as is. Change the colours in the <code>&lt;style&gt;</code> block,
+    wire the 4-digit check to your own <code>/api/otp/verify</code> endpoint in the
+    <code>&lt;script&gt;</code> block, and it is your verification screen.
+  </div>
+
+<script>
+  const stageEl = document.getElementById('stage');
+  const STAGE_W = stageEl.clientWidth, CX = STAGE_W/2, CY = 135, BOX = 64;
+  const R = Math.min(86, CX-72);
+  document.getElementById('orbitSvg').setAttribute('viewBox', `0 0 ${STAGE_W} 270`);
+  const oc = document.querySelector('#orbitSvg circle'); oc.setAttribute('cx', CX); oc.setAttribute('r', R);
+  const rowX = i => (STAGE_W - (4*BOX + 3*14))/2 + i*(BOX+14);
+  const boxes = [...document.querySelectorAll('.box')];
+  const ghost = document.getElementById('ghost');
+  let digits = [], state = 'typing'; // typing | orbit | done
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const smooth=k=>{k=clamp(k,0,1);return k*k*k*(k*(k*6-15)+10);};
+
+  function place(el,x,y,s=1){ el.style.transform = `translate(${x}px,${y}px) scale(${s})`; }
+  function layout(){
+    boxes.forEach((b,i)=>{
+      if (state==='typing') place(b, rowX(i), CY-BOX/2);
+      b.querySelector('.dig').textContent = digits[i] || '';
+      b.classList.toggle('focused', state==='typing' && digits.length===i);
+      let caret = b.querySelector('.caret');
+      if (state==='typing' && digits.length===i){
+        if (!caret){ caret=document.createElement('span'); caret.className='caret'; b.appendChild(caret); }
+      } else if (caret) caret.remove();
+    });
+  }
+  function focusInput(){ ghost.focus({preventScroll:true}); }
+  boxes.forEach(b=>b.addEventListener('click', focusInput));
+  document.getElementById('panel').addEventListener('click', e=>{
+    if (state==='typing' && !e.target.closest('button')) focusInput();
+  });
+  ghost.addEventListener('input', ()=>{
+    if (state!=='typing') return;
+    const v = ghost.value.replace(/\D/g,'').slice(0,4);
+    digits = v.split('');
+    layout();
+    if (digits.length===4) startOrbit();
+  });
+  ghost.addEventListener('keydown', e=>{
+    if (state!=='typing') return;
+    if (e.key==='Backspace' && !ghost.value && digits.length){ digits.pop(); layout(); }
+  });
+  document.addEventListener('keydown', e=>{
+    if (state==='typing' && /^\d$/.test(e.key) && document.activeElement!==ghost){
+      ghost.value = digits.join('') + e.key; ghost.dispatchEvent(new Event('input'));
+    }
+    if (state==='typing' && e.key==='Backspace' && document.activeElement!==ghost && digits.length){
+      digits.pop(); ghost.value = digits.join(''); layout();
+    }
+  });
+
+  function startOrbit(){
+    state='orbit';
+    document.getElementById('resend').style.opacity = 0;
+    const orbit = document.getElementById('orbitSvg'); orbit.style.opacity = 1;
+    const start = boxes.map((b,i)=>({x:rowX(i), y:CY-BOX/2}));
+    const baseA = [-Math.PI/2, 0, Math.PI/2, Math.PI];
+    const t0 = performance.now(), DUR = 1500;
+    (function frame(now){
+      const k = clamp((now-t0)/DUR, 0, 1), e = smooth(k);
+      boxes.forEach((b,i)=>{
+        const ang = baseA[i] + e*Math.PI*2;
+        const ox = CX + R*Math.cos(ang) - BOX/2, oy = CY + R*Math.sin(ang) - BOX/2;
+        const mix = smooth(clamp(k*1.6,0,1));
+        place(b, start[i].x+(ox-start[i].x)*mix, start[i].y+(oy-start[i].y)*mix);
+        b.classList.add('focused');
+      });
+      if (k<1) requestAnimationFrame(frame); else showSuccess();
+    })(t0);
+  }
+
+  function showSuccess(){
+    state='done';
+    boxes.forEach(b=>b.style.opacity=0);
+    document.getElementById('orbitSvg').style.opacity = 0;
+    document.getElementById('heading').textContent = 'Verified successfully';
+    document.getElementById('subtext').textContent = 'Your phone number has been verified.';
+    const suc = document.getElementById('success'); suc.style.opacity = 1;
+    const ring = document.getElementById('ring'), C = 2*Math.PI*69;
+    ring.style.strokeDasharray = C;
+    const t0 = performance.now();
+    (function draw(now){
+      const k = smooth(clamp((now-t0)/650,0,1));
+      ring.style.strokeDashoffset = C*(1-k);
+      if (k<1) requestAnimationFrame(draw);
+    })(t0);
+    document.getElementById('again').style.display = 'inline-block';
+  }
+
+  function reset(){
+    digits = []; ghost.value = ''; state='typing';
+    boxes.forEach(b=>{ b.style.opacity=1; b.classList.remove('focused'); });
+    document.getElementById('success').style.opacity = 0;
+    document.getElementById('resend').style.opacity = 1;
+    document.getElementById('heading').textContent = 'Let\u2019s verify your number';
+    document.getElementById('subtext').innerHTML = 'We\u2019ve sent a 4-digit code to your phone.<br>It\u2019ll auto-verify once entered.';
+    document.getElementById('again').style.display = 'none';
+    layout();
+  }
+  document.getElementById('again').addEventListener('click', reset);
+  document.getElementById('resendBtn').addEventListener('click', reset);
+  layout();
+</script>
+</body>
+</html>
